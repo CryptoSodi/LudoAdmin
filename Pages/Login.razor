@@ -1,0 +1,57 @@
+﻿@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IDisposable
+@inject LudoAdmin.Service.AuthService Auth
+
+@page "/Login"
+
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+    <img src="logo.png" alt="Logo" style="width: 450px; margin-bottom: 40px;" />
+
+    <button @onclick="LoginWithGoogle" style="padding: 12px 24px; font-size: 1.2em; cursor: pointer; border-radius: 4px; border: none; background: #4285F4; color: white;">
+        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" style="width:24px; vertical-align: middle; margin-right: 8px;" />
+        Login with Google
+    </button>
+</div>
+
+@code {
+    private DotNetObjectReference<Login>? objRef;
+
+    protected override void OnInitialized()
+    {
+        objRef = DotNetObjectReference.Create(this);
+    }
+    // Replace these with your actual values from Google Developer Console
+    private string clientId = "973406093603-dlm3o6jrkuf6b1m1lc7m8hir9qc4cul5.apps.googleusercontent.com";//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
+    private string redirectUri => Navigation.BaseUri + "auth-callback"; // We will create this page next
+
+    private async Task LoginWithGoogle()
+    {
+        var url =
+            $"https://accounts.google.com/o/oauth2/v2/auth" +
+            $"?client_id={clientId}" +
+            $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
+            $"&response_type=token" +
+            $"&scope=openid%20email%20profile" +
+            $"&prompt=select_account";
+
+        // Expose the .NET callback object for JS to use
+        await JS.InvokeVoidAsync("window.registerGoogleAuthCallback", objRef);
+        await JS.InvokeVoidAsync("openGoogleLoginPopup", url);
+    }
+    [JSInvokable]
+    public async Task OnGoogleAuthSuccess(string token)
+    {
+        // Optionally store token, authenticate, etc.
+         await Auth.SetAccessTokenAsync(token);
+        // await Hub.SendUserLoggedInEvent(token);
+
+        // Redirect to home or wherever you want
+        Navigation.NavigateTo("/", true);
+    }
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+}
+@* Note: Make sure to replace YOUR_GOOGLE_CLIENT_ID with your actual Google Client ID. *@

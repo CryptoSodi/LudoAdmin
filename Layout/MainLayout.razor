@@ -1,0 +1,67 @@
+﻿@inherits LayoutComponentBase
+@inject LudoAdmin.Service.AuthService Auth
+@inject NavigationManager Nav
+@if (!_isChecked)
+{
+    <!-- Optional: Add a spinner or loading text -->
+    <div style="text-align:center; padding:40px;">
+        <h3>Checking authentication...</h3>
+    </div>
+}
+else if (_isLoggedIn)
+{
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+
+        <main>
+            <div class="top-row px-4">
+                <button @onclick="Logout" style="background:none; border:none; color:#4285F4; cursor:pointer; font-size:1em; text-decoration:underline;">Logout</button>
+            </div>
+
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
+    </div>
+}
+else
+{
+    <div class="page">        
+        <main>
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
+    </div>
+}
+@code {
+    private bool _isChecked = false;
+    private bool _isLoggedIn = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Don't check for login page or callback page
+        var currentUri = Nav.ToBaseRelativePath(Nav.Uri).ToLower();
+        if (currentUri.StartsWith("login") || currentUri.StartsWith("auth-callback"))
+        {
+            _isChecked = true;
+            _isLoggedIn = false;
+            return;
+        }
+
+        _isLoggedIn = await Auth.IsLoggedInAsync();
+        _isChecked = true;
+
+        if (!_isLoggedIn)
+        {
+            Nav.NavigateTo("/login", true);
+        }
+    }
+    private async Task Logout()
+    {
+        await Auth.RemoveAccessTokenAsync();
+        Nav.NavigateTo("/login", true);
+    }
+}

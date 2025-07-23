@@ -1,0 +1,42 @@
+﻿@page "/auth-callback"
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject LudoAdmin.Service.HubService Hub
+@inject IJSRuntime JS
+@if (showError)
+{
+    <p style="color:red;">Login failed. Please try again.</p>
+}
+else
+{
+    <h3>Signing in...</h3>
+}
+
+@code {
+    private bool showError = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var tokenFound = await JS.InvokeAsync<bool>("eval", @"
+                (function() {
+                    const hash = window.location.hash.substring(1);
+                    const params = new URLSearchParams(hash);
+                    const token = params.get('access_token');
+                    if (token && window.opener) {
+                        window.opener.postMessage({ type: 'GoogleAuthToken', token: token }, window.origin);
+                        window.close();
+                        return true;
+                    } else {
+                        return false;
+                    }
+                })();
+            ");
+            if (!tokenFound)
+            {
+                showError = true;
+                StateHasChanged();
+            }
+        }
+    }
+}

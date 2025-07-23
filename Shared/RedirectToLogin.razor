@@ -1,0 +1,13 @@
+﻿@inject LudoAdmin.Service.AuthService Auth
+@inject NavigationManager Nav
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var loggedIn = await Auth.IsLoggedInAsync();
+        if (!loggedIn)
+        {
+            Nav.NavigateTo("/login", true);
+        }
+    }
+}
