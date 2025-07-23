@@ -1,0 +1,45 @@
+﻿@page "/games"
+
+
+@if (games.Count == 0)
+{
+    <div>No games played yet.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Game</th>
+                <th>Date Played</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var game in games)
+            {
+                <tr>
+                    <td>@game.Name</td>
+                    <td>@game.PlayedOn.ToString("yyyy-MM-dd")</td>
+                    <td>@game.Result</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    public class Game
+    {
+        public string Name { get; set; }
+        public DateTime PlayedOn { get; set; }
+        public string Result { get; set; }
+    }
+
+    private List<Game> games = new List<Game>
+    {
+        new Game { Name = "Classic Ludo", PlayedOn = DateTime.Now.AddDays(-3), Result = "Won" },
+        new Game { Name = "Super Ludo", PlayedOn = DateTime.Now.AddDays(-1), Result = "Lost" },
+        new Game { Name = "Quick Ludo", PlayedOn = DateTime.Now, Result = "Won" }
+    };
+}

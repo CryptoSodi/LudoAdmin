@@ -1,0 +1,52 @@
+﻿@page "/chat"
+<div class="chat-root d-flex flex-column" style="height:calc(100vh - 3.5rem); background: #fff; border-radius: 6px;">
+    <div class="flex-grow-1 chat-messages overflow-auto p-3">
+        @foreach (var msg in messages)
+        {
+            <div class="mb-2">
+                <span class="fw-bold">@msg.User:</span>
+                <span>@msg.Text</span>
+                <div class="text-muted" style="font-size:0.8rem;">@msg.Timestamp.ToShortTimeString()</div>
+            </div>
+        }
+    </div>
+    <div class="chat-input-box p-2 border-top">
+        <EditForm Model="@newMessage" OnValidSubmit="SendMessage">
+            <div class="input-group">
+                <InputText class="form-control" @bind-Value="newMessage.Text" placeholder="Type a message..." />
+                <button type="submit" class="btn btn-primary">Send</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+@code {
+    public class ChatMessage
+    {
+        public string User { get; set; }
+        public string Text { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    private List<ChatMessage> messages = new List<ChatMessage>
+    {
+        new ChatMessage { User = "Alice", Text = "Hello!", Timestamp = DateTime.Now.AddMinutes(-3) },
+        new ChatMessage { User = "Bob", Text = "Hi there!", Timestamp = DateTime.Now.AddMinutes(-2) }
+    };
+
+    private ChatMessage newMessage = new ChatMessage { User = "You" };
+
+    private void SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(newMessage.Text))
+        {
+            newMessage.Timestamp = DateTime.Now;
+            messages.Add(new ChatMessage
+            {
+                User = newMessage.User,
+                Text = newMessage.Text,
+                Timestamp = newMessage.Timestamp
+            });
+            newMessage.Text = "";
+        }
+    }
+}

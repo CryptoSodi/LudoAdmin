@@ -1,0 +1,57 @@
+﻿@page "/withdraw"
+
+<h3>Withdraw</h3>
+
+<EditForm Model="@withdrawModel" OnValidSubmit="HandleWithdraw">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="amount" class="form-label">Amount</label>
+        <InputNumber id="amount" class="form-control" @bind-Value="withdrawModel.Amount" />
+        <ValidationMessage For="@(() => withdrawModel.Amount)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="method" class="form-label">Withdrawal Method</label>
+        <InputSelect id="method" class="form-select" @bind-Value="withdrawModel.Method">
+            <option value="">-- Select --</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="PayPal">PayPal</option>
+            <option value="UPI">UPI</option>
+        </InputSelect>
+        <ValidationMessage For="@(() => withdrawModel.Method)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="account" class="form-label">Account / PayPal / UPI ID</label>
+        <InputText id="account" class="form-control" @bind-Value="withdrawModel.Account" />
+        <ValidationMessage For="@(() => withdrawModel.Account)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Withdraw</button>
+</EditForm>
+
+@if (successMessage != null)
+{
+    <div class="alert alert-success mt-3">@successMessage</div>
+}
+
+@code {
+    private WithdrawModel withdrawModel = new();
+    private string? successMessage;
+
+    public class WithdrawModel
+    {
+        public decimal Amount { get; set; }
+        public string? Method { get; set; }
+        public string? Account { get; set; }
+    }
+
+    private void HandleWithdraw()
+    {
+        // Here you would process the withdrawal (call API, check balance, etc)
+        successMessage = $"Withdrawal of {withdrawModel.Amount:C} to {withdrawModel.Account} via {withdrawModel.Method} submitted!";
+        withdrawModel = new WithdrawModel(); // reset form
+    }
+}

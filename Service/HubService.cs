@@ -19,7 +19,7 @@
             }
 
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl(GlobalConstants.HubUrl + "LudoHub")
+                .WithUrl(GlobalConstants.HubUrl + "AdminHub")
                 .WithAutomaticReconnect()
                 .Build();
 

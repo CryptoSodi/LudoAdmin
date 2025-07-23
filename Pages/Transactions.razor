@@ -1,0 +1,79 @@
+﻿@page "/transactions"
+
+<h3>Transactions</h3>
+
+@if (transactions.Count == 0)
+{
+    <div>No transactions yet.</div>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Reference</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tx in transactions)
+            {
+                <tr>
+                    <td>@tx.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>
+                        @if (tx.Type == "Deposit")
+                        {
+                            <span class="text-success fw-bold">
+                                <i class="bi bi-cash-coin"></i> Deposit
+                            </span>
+                        }
+                        else if (tx.Type == "Withdraw")
+                        {
+                            <span class="text-danger fw-bold">
+                                <i class="bi bi-coin"></i> Withdraw
+                            </span>
+                        }
+                    </td>
+                    <td>@tx.Amount.ToString("C")</td>
+                    <td>
+                        @if (tx.Status == "Completed")
+                        {
+                            <span class="badge bg-success">Completed</span>
+                        }
+                        else if (tx.Status == "Pending")
+                        {
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Failed</span>
+                        }
+                    </td>
+                    <td>@tx.Reference</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    public class Transaction
+    {
+        public DateTime Date { get; set; }
+        public string Type { get; set; } // "Deposit" or "Withdraw"
+        public decimal Amount { get; set; }
+        public string Status { get; set; } // "Completed", "Pending", "Failed"
+        public string Reference { get; set; }
+    }
+
+    private List<Transaction> transactions = new List<Transaction>
+    {
+        new Transaction { Date = DateTime.Now.AddDays(-2), Type = "Deposit", Amount = 50, Status = "Completed", Reference = "TXN001" },
+        new Transaction { Date = DateTime.Now.AddDays(-1), Type = "Withdraw", Amount = 20, Status = "Completed", Reference = "TXN002" },
+        new Transaction { Date = DateTime.Now.AddHours(-6), Type = "Deposit", Amount = 100, Status = "Pending", Reference = "TXN003" },
+        new Transaction { Date = DateTime.Now.AddMinutes(-45), Type = "Withdraw", Amount = 10, Status = "Failed", Reference = "TXN004" }
+    };
+}

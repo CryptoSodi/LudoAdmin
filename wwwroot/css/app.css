@@ -112,3 +112,32 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.chat-root {
+    width: 100%;
+    min-height: calc(100vh - 3.5rem);
+    height: calc(100vh - 3.5rem);
+    margin: 0;
+    border-radius: 6px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0; /* fixes flexbox scroll issues in some browsers */
+}
+
+.chat-input-box {
+    background: #fff;
+    border-radius: 0 0 6px 6px;
+    border-top: 1px solid #e0e0e0;
+}
+
+button:hover img {
+    opacity: 0.92;
+    filter: brightness(0.98);
+}

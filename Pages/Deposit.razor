@@ -1,0 +1,52 @@
+﻿@page "/deposit"
+
+<h3>Deposit</h3>
+
+<EditForm Model="@depositModel" OnValidSubmit="HandleDeposit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="amount" class="form-label">Amount</label>
+        <InputNumber id="amount" class="form-control" @bind-Value="depositModel.Amount" />
+        <ValidationMessage For="@(() => depositModel.Amount)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="method" class="form-label">Payment Method</label>
+        <InputSelect id="method" class="form-select" @bind-Value="depositModel.Method">
+            <option value="">-- Select --</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="PayPal">PayPal</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+        </InputSelect>
+        <ValidationMessage For="@(() => depositModel.Method)" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Deposit</button>
+</EditForm>
+
+@if (successMessage != null)
+{
+    <div class="alert alert-success mt-3">@successMessage</div>
+}
+
+@code {
+    private DepositModel depositModel = new();
+    private string? successMessage;
+
+    public class DepositModel
+    {
+        public decimal Amount { get; set; }
+
+     
+        public string? Method { get; set; }
+    }
+
+    private void HandleDeposit()
+    {
+        // Here you would process the deposit (call API, etc)
+        successMessage = $"Deposit of {depositModel.Amount:C} by {depositModel.Method} submitted!";
+        depositModel = new DepositModel(); // reset form
+    }
+}
