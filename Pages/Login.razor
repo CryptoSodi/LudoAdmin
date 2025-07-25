@@ -2,8 +2,11 @@
 @inject IJSRuntime JS
 @implements IDisposable
 @inject LudoAdmin.Service.AuthService Auth
+@inject LudoAdmin.Service.HubService Hub;
+@inject PlayerState PlayerState; // Add this to your component
 
 @page "/Login"
+@using SharedCode.Constants
 <div style="
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -20,45 +23,80 @@
 ">
     <img src="logo.png" alt="Logo" style="width: 450px; margin-bottom: 40px;" />
 
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div style="color: white; background: #d9534f; padding: 10px 25px; border-radius: 4px; margin-bottom: 16px; font-weight: bold;">
+            @ErrorMessage
+        </div>
+    }
+
     <button @onclick="LoginWithGoogle" style="padding: 0; border: none; background: none; cursor: pointer;">
         <img src="google_login.webp" alt="Login with Google" style="width:220px; height:auto; display: block;" />
     </button>
 </div>
 @code {
     private DotNetObjectReference<Login>? objRef;
+    private string? ErrorMessage;
 
     protected override void OnInitialized()
     {
         objRef = DotNetObjectReference.Create(this);
     }
+
     // Replace these with your actual values from Google Developer Console
-    private string clientId = "973406093603-dlm3o6jrkuf6b1m1lc7m8hir9qc4cul5.apps.googleusercontent.com";//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
+    private string clientId = "973406093603-dlm3o6jrkuf6b1m1lc7m8hir9qc4cul5.apps.googleusercontent.com";
     private string redirectUri => Navigation.BaseUri + "auth-callback"; // We will create this page next
 
     private async Task LoginWithGoogle()
     {
+        ErrorMessage = null; // Clear previous error, if any
+        var nonce = Guid.NewGuid().ToString();
+
         var url =
             $"https://accounts.google.com/o/oauth2/v2/auth" +
             $"?client_id={clientId}" +
             $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-            $"&response_type=token" +
+            $"&response_type=id_token" +
             $"&scope=openid%20email%20profile" +
+            $"&nonce={nonce}" +
             $"&prompt=select_account";
 
-        // Expose the .NET callback object for JS to use
         await JS.InvokeVoidAsync("window.registerGoogleAuthCallback", objRef);
         await JS.InvokeVoidAsync("openGoogleLoginPopup", url);
     }
+
     [JSInvokable]
     public async Task OnGoogleAuthSuccess(string token)
     {
-        // Optionally store token, authenticate, etc.
-         await Auth.SetAccessTokenAsync(token);
-        // await Hub.SendUserLoggedInEvent(token);
-
-        // Redirect to home or wherever you want
-        Navigation.NavigateTo("/", true);
+        try
+        {
+            PlayerInfo player = await Hub.SendUserLoggedInEvent(token);
+            if (player != null)
+            {
+                await Auth.SetPlayerInfoAsync(player);
+                PlayerState.SetPlayer(player); // <-- update global state here
+                Navigation.NavigateTo("/", true);
+            }
+            else
+            {
+                ErrorMessage = "Login failed. Please try again.";
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Contains("Hub"))
+            {
+                ErrorMessage = $"Login error: Please check your Internet reload the page!";
+            }
+            else
+            {
+                ErrorMessage = $"Login error: {ex.Message}";
+            }
+            StateHasChanged();
+        }
     }
+
     public void Dispose()
     {
         objRef?.Dispose();

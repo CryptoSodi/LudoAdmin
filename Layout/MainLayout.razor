@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
 @inject LudoAdmin.Service.AuthService Auth
 @inject NavigationManager Nav
+@inject PlayerState PlayerState
+
 @if (!_isChecked)
 {
     <!-- Optional: Add a spinner or loading text -->
@@ -57,6 +59,11 @@ else
         if (!_isLoggedIn)
         {
             Nav.NavigateTo("/login", true);
+        }
+        else
+        {
+            var player = await Auth.GetPlayerInfoAsync();
+            PlayerState.SetPlayer(player);
         }
     }
     private async Task Logout()

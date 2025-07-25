@@ -141,3 +141,21 @@ button:hover img {
     opacity: 0.92;
     filter: brightness(0.98);
 }
+
+/* Deposit page*/
+
+.card-title {
+    letter-spacing: 2px;
+    color: #24348A;
+}
+
+.bg-secondary {
+    background-color: #24348A !important;
+}
+
+.alert-warning {
+    background-color: #FDEBD0;
+    color: #A04000;
+    border: none;
+    font-size: 0.92rem;
+}

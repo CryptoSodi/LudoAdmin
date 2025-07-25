@@ -1,25 +1,60 @@
 ﻿@page "/chat"
-<div class="chat-root d-flex flex-column" style="height:calc(100vh - 3.5rem); background: #fff; border-radius: 6px;">
-    <div class="flex-grow-1 chat-messages overflow-auto p-3">
-        @foreach (var msg in messages)
-        {
-            <div class="mb-2">
-                <span class="fw-bold">@msg.User:</span>
-                <span>@msg.Text</span>
-                <div class="text-muted" style="font-size:0.8rem;">@msg.Timestamp.ToShortTimeString()</div>
+
+<div class="container-fluid py-3" style="height: calc(100vh - 3.5rem);">
+    <div class="row h-100">
+        <!-- User list sidebar -->
+        <div class="col-12 col-md-3 col-lg-2 border-end px-0" style="background:#f6f6f6; border-radius: 6px 0 0 6px;">
+            <div class="list-group list-group-flush">
+                @foreach (var user in users)
+                {
+                    <button class="list-group-item list-group-item-action @(selectedUser == user ? "active" : "")"
+                            @onclick="() => SelectUser(user)">
+                        <span class="fw-bold">@user.Name</span>
+                    </button>
+                }
             </div>
-        }
-    </div>
-    <div class="chat-input-box p-2 border-top">
-        <EditForm Model="@newMessage" OnValidSubmit="SendMessage">
-            <div class="input-group">
-                <InputText class="form-control" @bind-Value="newMessage.Text" placeholder="Type a message..." />
-                <button type="submit" class="btn btn-primary">Send</button>
+        </div>
+        <!-- Chat messages and input -->
+        <div class="col px-0 d-flex flex-column" style="background:#fff; border-radius: 0 6px 6px 0;">
+            <div class="flex-grow-1 chat-messages overflow-auto p-3">
+                <h5 class="mb-3 border-bottom pb-2">@selectedUser?.Name ?? "Select a user"</h5>
+                @if (selectedUser != null)
+                {
+                    @foreach (var msg in selectedUser.Messages)
+                    {
+                        <div class="mb-2">
+                            <span class="fw-bold">@msg.User:</span>
+                            <span>@msg.Text</span>
+                            <div class="text-muted" style="font-size:0.8rem;">@msg.Timestamp.ToShortTimeString()</div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-muted mt-5">Please select a user to chat with.</div>
+                }
             </div>
-        </EditForm>
+            @if (selectedUser != null)
+            {
+                <div class="chat-input-box p-2 border-top">
+                    <EditForm Model="@newMessage" OnValidSubmit="SendMessage">
+                        <div class="input-group">
+                            <InputText class="form-control" @bind-Value="newMessage.Text" placeholder="Type a message..." />
+                            <button type="submit" class="btn btn-primary">Send</button>
+                        </div>
+                    </EditForm>
+                </div>
+            }
+        </div>
     </div>
 </div>
+
 @code {
+    public class ChatUser
+    {
+        public string Name { get; set; }
+        public List<ChatMessage> Messages { get; set; } = new();
+    }
     public class ChatMessage
     {
         public string User { get; set; }
@@ -27,20 +62,51 @@
         public DateTime Timestamp { get; set; }
     }
 
-    private List<ChatMessage> messages = new List<ChatMessage>
+    // Sample users and chat history
+    private List<ChatUser> users = new List<ChatUser>
     {
-        new ChatMessage { User = "Alice", Text = "Hello!", Timestamp = DateTime.Now.AddMinutes(-3) },
-        new ChatMessage { User = "Bob", Text = "Hi there!", Timestamp = DateTime.Now.AddMinutes(-2) }
+        new ChatUser
+        {
+            Name = "Alice",
+            Messages = new List<ChatMessage>
+            {
+                new ChatMessage { User = "Alice", Text = "Hello!", Timestamp = DateTime.Now.AddMinutes(-3) },
+                new ChatMessage { User = "You", Text = "Hi Alice!", Timestamp = DateTime.Now.AddMinutes(-2) }
+            }
+        },
+        new ChatUser
+        {
+            Name = "Bob",
+            Messages = new List<ChatMessage>
+            {
+                new ChatMessage { User = "Bob", Text = "Hi there!", Timestamp = DateTime.Now.AddMinutes(-5) }
+            }
+        },
+        new ChatUser
+        {
+            Name = "Charlie",
+            Messages = new List<ChatMessage>
+            {
+                new ChatMessage { User = "Charlie", Text = "Ready to play?", Timestamp = DateTime.Now.AddMinutes(-7) }
+            }
+        }
     };
 
+    private ChatUser selectedUser;
     private ChatMessage newMessage = new ChatMessage { User = "You" };
+
+    private void SelectUser(ChatUser user)
+    {
+        selectedUser = user;
+        newMessage = new ChatMessage { User = "You" };
+    }
 
     private void SendMessage()
     {
-        if (!string.IsNullOrWhiteSpace(newMessage.Text))
+        if (selectedUser != null && !string.IsNullOrWhiteSpace(newMessage.Text))
         {
             newMessage.Timestamp = DateTime.Now;
-            messages.Add(new ChatMessage
+            selectedUser.Messages.Add(new ChatMessage
             {
                 User = newMessage.User,
                 Text = newMessage.Text,

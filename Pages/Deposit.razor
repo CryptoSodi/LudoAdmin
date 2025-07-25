@@ -1,52 +1,67 @@
-﻿@page "/deposit"
+﻿@inject PlayerState PlayerState
+@page "/deposit"
 
-<h3>Deposit</h3>
+@inject IJSRuntime JS
 
-<EditForm Model="@depositModel" OnValidSubmit="HandleDeposit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">DEPOSIT</h4>
 
-    <div class="mb-3">
-        <label for="amount" class="form-label">Amount</label>
-        <InputNumber id="amount" class="form-control" @bind-Value="depositModel.Amount" />
-        <ValidationMessage For="@(() => depositModel.Amount)" />
+                    <!-- Balance Section -->
+                    <div class="d-flex align-items-center justify-content-between bg-light rounded p-3 mb-4">
+                        <div>
+                            <div class="small text-muted">TOTAL BALANCE AVAILABLE</div>
+                            <div class="fw-bold">@totalBalance.ToString("0.00")</div>
+                        </div>
+                        <img src="solicon.webp" alt="Sol Icon" style="width:32px;height:32px;" />
+                    </div>
+
+                    <!-- QR and Address Section -->
+                    <div class="text-center mb-3">
+                        <img src="@QRCodeUrl" alt="QR Code" width="180" height="180" class="rounded mb-2" style="background:#4031af;" />
+                    </div>
+
+                    <div class="alert alert-warning text-center py-2 small mb-2">
+                        SOL ADDRESS ONLY SEND ON DEVNET
+                    </div>
+
+                    <div class="bg-secondary text-white text-center rounded p-2 mb-2" id="depositAddress">
+                        @depositAddress
+                    </div>
+                    <button class="btn btn-warning w-100" @onclick="CopyAddressAsync">COPY</button>
+                    @if (copySuccess)
+                    {
+                        <div class="text-success text-center mt-2">Address copied!</div>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label for="method" class="form-label">Payment Method</label>
-        <InputSelect id="method" class="form-select" @bind-Value="depositModel.Method">
-            <option value="">-- Select --</option>
-            <option value="Credit Card">Credit Card</option>
-            <option value="PayPal">PayPal</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-        </InputSelect>
-        <ValidationMessage For="@(() => depositModel.Method)" />
-    </div>
-
-    <button type="submit" class="btn btn-success">Deposit</button>
-</EditForm>
-
-@if (successMessage != null)
-{
-    <div class="alert alert-success mt-3">@successMessage</div>
-}
+</div>
 
 @code {
-    private DepositModel depositModel = new();
-    private string? successMessage;
+    
+    private decimal totalBalance = 0.0m; // Replace with your real value
+    private string depositAddress = ""; // Replace with your actual address
+    private string QRCodeUrl => $"https://api.qrserver.com/v1/create-qr-code/?data={depositAddress}&size=180x180";
+    private bool copySuccess = false;
 
-    public class DepositModel
+    protected override void OnInitialized()
     {
-        public decimal Amount { get; set; }
-
-     
-        public string? Method { get; set; }
+        // Safely check for nulls
+        depositAddress = PlayerState.Player?.Wallet?.WalletAddress ?? "";
+        totalBalance = PlayerState.Player?.Wallet?.AvailableBalance ?? 0.0m;
     }
-
-    private void HandleDeposit()
+    private async Task CopyAddressAsync()
     {
-        // Here you would process the deposit (call API, etc)
-        successMessage = $"Deposit of {depositModel.Amount:C} by {depositModel.Method} submitted!";
-        depositModel = new DepositModel(); // reset form
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", depositAddress);
+        copySuccess = true;
+        StateHasChanged();
+        await Task.Delay(1200);
+        copySuccess = false;
+        StateHasChanged();
     }
 }

@@ -22,9 +22,9 @@ else
                 (function() {
                     const hash = window.location.hash.substring(1);
                     const params = new URLSearchParams(hash);
-                    const token = params.get('access_token');
-                    if (token && window.opener) {
-                        window.opener.postMessage({ type: 'GoogleAuthToken', token: token }, window.origin);
+                    const id_token = params.get('id_token'); // <--- CHANGE HERE
+                    if (id_token && window.opener) {
+                        window.opener.postMessage({ type: 'GoogleAuthToken', token: id_token }, window.origin);
                         window.close();
                         return true;
                     } else {

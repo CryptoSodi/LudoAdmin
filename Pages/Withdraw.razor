@@ -1,57 +1,312 @@
 ﻿@page "/withdraw"
+@inject PlayerState PlayerState
+@inject IJSRuntime JS
+@using System.ComponentModel.DataAnnotations
 
-<h3>Withdraw</h3>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">WITHDRAW</h4>
 
-<EditForm Model="@withdrawModel" OnValidSubmit="HandleWithdraw">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+                    <!-- BALANCE -->
+                    <div class="d-flex align-items-center justify-content-between bg-light rounded p-3 mb-4">
+                        <div>
+                            <div class="small text-muted">TOTAL BALANCE AVAILABLE</div>
+                            <div class="fw-bold">@totalBalance.ToString("0.00")</div>
+                        </div>
+                        <img src="solicon.webp" alt="Sol Icon" style="width:32px;height:32px;" />
+                    </div>
 
-    <div class="mb-3">
-        <label for="amount" class="form-label">Amount</label>
-        <InputNumber id="amount" class="form-control" @bind-Value="withdrawModel.Amount" />
-        <ValidationMessage For="@(() => withdrawModel.Amount)" />
+                    <EditForm Model="@withdrawModel" OnValidSubmit="HandleWithdraw">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <!-- GATEWAY (always show) -->
+                        <div class="mb-3">
+                            <label for="gateway" class="form-label">Payment Gateway</label>
+                            <InputSelect id="gateway" class="form-control" @bind-Value="withdrawModel.Gateway">
+                                @foreach (var gateway in gatewayOptions)
+                                {
+                                    <option value="@gateway">@gateway</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => withdrawModel.Gateway)" />
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(withdrawModel.Gateway))
+                        {
+                            @if (withdrawModel.Gateway == "SOLANA" || withdrawModel.Gateway == "USDC")
+                            {
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">@withdrawModel.Gateway Address</label>
+                                    <InputText id="address" class="form-control" @bind-Value="withdrawModel.Address" />
+                                    <ValidationMessage For="@(() => withdrawModel.Address)" />
+                                </div>
+                            }
+                            else if (withdrawModel.Gateway == "JazzCash" || withdrawModel.Gateway == "EasyPaisa" || withdrawModel.Gateway == "Paytm")
+                            {
+                                <div class="mb-3">
+                                    <label for="mobile" class="form-label">@withdrawModel.Gateway Mobile Number</label>
+                                    <InputText id="mobile" class="form-control" @bind-Value="withdrawModel.Address" />
+                                    <ValidationMessage For="@(() => withdrawModel.Address)" />
+                                </div>
+                            }
+
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">@withdrawModel.Gateway Amount</label>
+                                <InputNumber id="amount" class="form-control" @bind-Value="withdrawModel.Amount" />
+                                <ValidationMessage For="@(() => withdrawModel.Amount)" />
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between">
+                            @if (withdrawModel.Gateway == "SOLANA" || withdrawModel.Gateway == "USDC")
+                            {
+                                <button type="button" class="btn btn-secondary me-2" @onclick="PasteAddressAsync">PASTE ADDRESS</button>
+                            }
+                            <button type="submit" class="btn btn-warning">SEND</button>
+                        </div>
+                    </EditForm>
+
+                    @if (successMessage != null)
+                    {
+                        <div class="alert alert-success mt-3">@successMessage</div>
+                    }
+                    @if (copySuccess)
+                    {
+                        <div class="text-success text-center mt-2">Address pasted!</div>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="mb-3">
-        <label for="method" class="form-label">Withdrawal Method</label>
-        <InputSelect id="method" class="form-select" @bind-Value="withdrawModel.Method">
-            <option value="">-- Select --</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-            <option value="PayPal">PayPal</option>
-            <option value="UPI">UPI</option>
-        </InputSelect>
-        <ValidationMessage For="@(() => withdrawModel.Method)" />
-    </div>
-
-    <div class="mb-3">
-        <label for="account" class="form-label">Account / PayPal / UPI ID</label>
-        <InputText id="account" class="form-control" @bind-Value="withdrawModel.Account" />
-        <ValidationMessage For="@(() => withdrawModel.Account)" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Withdraw</button>
-</EditForm>
-
-@if (successMessage != null)
+<!-- OTP MODAL -->
+@if (showOtpModal)
 {
-    <div class="alert alert-success mt-3">@successMessage</div>
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Withdraw Confirmation</h5>
+                    <button type="button" class="btn-close" @onclick="CloseOtpModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (withdrawModel.Gateway == "JazzCash" || withdrawModel.Gateway == "EasyPaisa" || withdrawModel.Gateway == "Paytm")
+                    {
+                        <EditForm Model="@otpModel" OnValidSubmit="HandleOtpSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            @if (string.IsNullOrWhiteSpace(UserPhone) || UserPhone == "###########")
+                            {
+                                <!-- User can enter number -->
+                                <div class="mb-3">
+                                    <label for="number" class="form-label">Enter your mobile number</label>
+                                    <InputText id="number" class="form-control" @bind-Value="otpModel.Number" maxlength="15" />
+                                    <ValidationMessage For="@(() => otpModel.Number)" />
+                                </div>
+                                <button type="button" class="btn btn-secondary mb-2 w-100" @onclick="SendOtpToNumber" disabled="@otpSent">Send OTP</button>
+                            }
+                            else
+                            {
+                                <!-- Display user's number, not editable -->
+                                <div class="mb-3">
+                                    <label class="form-label">OTP will be sent to:</label>
+                                    <div class="fw-bold mb-2">@UserPhone</div>
+                                    <button type="button" class="btn btn-secondary mb-2 w-100" @onclick="SendOtpToNumber" disabled="@otpSent">Send OTP</button>
+                                </div>
+                            }
+
+                            @if (otpSent)
+                            {
+                                <div class="mb-3">
+                                    <label for="otp" class="form-label">Enter OTP</label>
+                                    <InputText id="otp" class="form-control" @bind-Value="otpModel.Otp" maxlength="6" />
+                                    <ValidationMessage For="@(() => otpModel.Otp)" />
+                                </div>
+                                @if (!string.IsNullOrEmpty(otpError))
+                                {
+                                    <div class="alert alert-danger py-1">@otpError</div>
+                                }
+                                <button type="submit" class="btn btn-primary w-100">Confirm Withdrawal</button>
+                            }
+                        </EditForm>
+                    }
+                    else
+                    {
+                        <EditForm Model="@otpModel" OnValidSubmit="HandleOtpSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                            <div class="mb-3">
+                                <label for="otp" class="form-label">Enter the OTP sent to your email/phone</label>
+                                <InputText id="otp" class="form-control" @bind-Value="otpModel.Otp" maxlength="6" />
+                                <ValidationMessage For="@(() => otpModel.Otp)" />
+                            </div>
+                            @if (!string.IsNullOrEmpty(otpError))
+                            {
+                                <div class="alert alert-danger py-1">@otpError</div>
+                            }
+                            <button type="submit" class="btn btn-primary w-100">Confirm Withdrawal</button>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
-    private WithdrawModel withdrawModel = new();
+    private decimal totalBalance = 0.0m;
+    private WithdrawModel withdrawModel = new() { Gateway = "SOLANA" }; // Default to SOLANA
     private string? successMessage;
+    private bool copySuccess;
+    private bool showOtpModal = false;
+
+    private OtpModel otpModel = new();
+    private string? otpError;
+    private bool otpSent = false;
+
+    private List<string> gatewayOptions = new()
+    {
+        "SOLANA", "USDC", "JazzCash", "EasyPaisa", "Paytm"
+    };
+
+    protected override void OnInitialized()
+    {
+        totalBalance = PlayerState.Player?.Wallet?.AvailableBalance ?? 0.0m;
+    }
+
+    private string UserPhone => PlayerState.Player?.PhoneNumber ?? "";
 
     public class WithdrawModel
     {
+        [Required(ErrorMessage = "Amount is required.")]
+        [Range(0.0001, double.MaxValue, ErrorMessage = "Amount must be positive.")]
         public decimal Amount { get; set; }
-        public string? Method { get; set; }
-        public string? Account { get; set; }
+
+        [Required(ErrorMessage = "Address is required.")]
+        public string? Address { get; set; }
+
+        [Required(ErrorMessage = "Please select a gateway.")]
+        public string? Gateway { get; set; }
     }
 
-    private void HandleWithdraw()
+    public class OtpModel
     {
-        // Here you would process the withdrawal (call API, check balance, etc)
-        successMessage = $"Withdrawal of {withdrawModel.Amount:C} to {withdrawModel.Account} via {withdrawModel.Method} submitted!";
-        withdrawModel = new WithdrawModel(); // reset form
+        [StringLength(15, ErrorMessage = "Invalid number.")]
+        public string? Number { get; set; }
+
+        [Required(ErrorMessage = "OTP is required.")]
+        [StringLength(6, ErrorMessage = "OTP must be 6 digits.")]
+        public string? Otp { get; set; }
+    }
+
+    private async Task PasteAddressAsync()
+    {
+        try
+        {
+            var text = await JS.InvokeAsync<string>("navigator.clipboard.readText");
+            if (!string.IsNullOrEmpty(text))
+            {
+                withdrawModel.Address = text;
+                copySuccess = true;
+                StateHasChanged();
+                await Task.Delay(1000);
+                copySuccess = false;
+                StateHasChanged();
+            }
+        }
+        catch
+        {
+            // Clipboard permission denied or not available
+        }
+    }
+
+    private async Task HandleWithdraw()
+    {
+        otpError = null;
+        otpSent = false;
+
+        // Pre-fill the number if available and valid
+        if ((withdrawModel.Gateway == "JazzCash" || withdrawModel.Gateway == "EasyPaisa" || withdrawModel.Gateway == "Paytm") &&
+            (!string.IsNullOrWhiteSpace(UserPhone) && UserPhone != "###########"))
+        {
+            otpModel = new OtpModel { Number = UserPhone };
+        }
+        else
+        {
+            otpModel = new OtpModel();
+        }
+
+        showOtpModal = true;
+        StateHasChanged();
+    }
+
+    private async Task SendOtpToNumber()
+    {
+        string numberToSend = (!string.IsNullOrWhiteSpace(UserPhone) && UserPhone != "###########")
+            ? UserPhone
+            : otpModel.Number;
+
+        if (string.IsNullOrWhiteSpace(numberToSend))
+        {
+            otpError = "Please enter a valid phone number first.";
+            return;
+        }
+
+        var sent = await SendOtpRequestAsync(withdrawModel, numberToSend);
+        if (sent)
+        {
+            otpSent = true;
+            otpError = null;
+        }
+        else
+        {
+            otpError = "Failed to send OTP. Please try again.";
+        }
+    }
+
+    // When OTP is submitted
+    private async Task HandleOtpSubmit()
+    {
+        var confirmed = await ConfirmOtpAsync(withdrawModel, otpModel.Otp);
+
+        if (confirmed)
+        {
+            showOtpModal = false;
+            successMessage = $"Withdrawal of {withdrawModel.Amount} via {withdrawModel.Gateway} submitted!";
+            withdrawModel = new WithdrawModel() { Gateway = "SOLANA" };
+            otpSent = false;
+            otpModel = new OtpModel();
+        }
+        else
+        {
+            otpError = "Invalid OTP. Please try again.";
+        }
+    }
+
+    private void CloseOtpModal()
+    {
+        showOtpModal = false;
+        otpSent = false;
+    }
+
+    // Replace these with your own API/service calls
+    private async Task<bool> SendOtpRequestAsync(WithdrawModel model, string? number = null)
+    {
+        // Call your backend to send OTP
+        await Task.Delay(500); // Simulate API call
+        return true; // or false if failed
+    }
+
+    private async Task<bool> ConfirmOtpAsync(WithdrawModel model, string? otp)
+    {
+        // Call your backend to confirm the OTP
+        await Task.Delay(500); // Simulate API call
+        return otp == "123456"; // Accept only 123456 as demo OTP
     }
 }
