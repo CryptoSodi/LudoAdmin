@@ -33,6 +33,13 @@
             PlayerInfo player = await _hubConnection.InvokeAsync<PlayerInfo>("GoogleAuthentication", authToken, "", "").ConfigureAwait(false);
             return player;
         }
+        public async Task<PlayerInfo> UserConnectedSetID(string authToken)
+        {
+            if (_hubConnection == null || _hubConnection.State != HubConnectionState.Connected)
+                throw new InvalidOperationException("Hub connection is not established.");
+            PlayerInfo player = await _hubConnection.InvokeAsync<PlayerInfo>("UserConnectedSetID", authToken).ConfigureAwait(false);
+            return player;
+        }
         public async ValueTask DisposeAsync()
         {
             if (_hubConnection != null)

@@ -1,7 +1,8 @@
-﻿@inject PlayerState PlayerState
-@page "/deposit"
-
+﻿@page "/deposit"
+@inject PlayerState PlayerState
 @inject IJSRuntime JS
+@inject HttpClient Http
+@using System.ComponentModel.DataAnnotations
 
 <div class="container my-5">
     <div class="row justify-content-center">
@@ -9,32 +10,110 @@
             <div class="card shadow-lg">
                 <div class="card-body">
                     <h4 class="card-title text-center mb-4">DEPOSIT</h4>
-
-                    <!-- Balance Section -->
                     <div class="d-flex align-items-center justify-content-between bg-light rounded p-3 mb-4">
                         <div>
                             <div class="small text-muted">TOTAL BALANCE AVAILABLE</div>
-                            <div class="fw-bold">@totalBalance.ToString("0.00")</div>
+                            <div class="fw-bold">@totalBalance.ToString("0.00") LUDC</div>
                         </div>
                         <img src="solicon.webp" alt="Sol Icon" style="width:32px;height:32px;" />
                     </div>
+                    <EditForm Model="@depositModel" OnValidSubmit="HandleDeposit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <div class="mb-3">
+                            <label for="method" class="form-label">Deposit Method</label>
+                            <InputSelect id="method" class="form-control" @bind-Value="depositModel.Method" @onchange="MethodChanged">
+                                @foreach (var method in methodOptions)
+                                {
+                                    <option value="@method">@method</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => depositModel.Method)" />
+                        </div>
+                        @if (!string.IsNullOrEmpty(depositModel.Method))
+                        {
+                            @if (depositModel.Method == "SOLANA" || depositModel.Method == "USDC")
+                            {
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">@depositModel.Method Amount</label>
+                                    <InputNumber id="amount" class="form-control" @bind-Value="depositModel.Amount" />
+                                    <ValidationMessage For="@(() => depositModel.Amount)" />
+                                </div>
+                                <div class="mb-2 small text-muted">
+                                    @GetConversionInfo()
+                                </div>
+                                <div class="mb-2">
+                                    <b>You'll receive:</b>
+                                    <span class="fw-bold text-success">@CalculatedLUDC.ToString("0.##")</span> LUDC
+                                </div>
+                                <div class="text-center mb-3">
+                                    <img src="@QRCodeUrl" alt="QR Code" width="180" height="180" class="rounded mb-2" style="background:#4031af;" />
+                                </div>
+                                <div class="alert alert-warning text-center py-2 small mb-2">
+                                    @($"{depositModel.Method} ADDRESS ONLY SEND ON DEVNET")
+                                </div>
+                                <div class="bg-secondary text-white text-center rounded p-2 mb-2" id="depositAddress">
+                                    @depositAddress
+                                </div>
 
-                    <!-- QR and Address Section -->
-                    <div class="text-center mb-3">
-                        <img src="@QRCodeUrl" alt="QR Code" width="180" height="180" class="rounded mb-2" style="background:#4031af;" />
-                    </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-warning flex-grow-1" type="button" @onclick="CopyAddressAsync">COPY</button>
+                                    <button class="btn btn-primary flex-grow-1" type="submit">SUBMIT DEPOSIT</button>
+                                    @if (!string.IsNullOrEmpty(_phantomWalletAddress))
+                                    {
+                                        <button class="btn btn-success flex-grow-1" type="button" @onclick="DepositViaPhantomAsync">
+                                            Deposit via Phantom Wallet
+                                        </button>
+                                    }
+                                </div>
 
-                    <div class="alert alert-warning text-center py-2 small mb-2">
-                        SOL ADDRESS ONLY SEND ON DEVNET
-                    </div>
 
-                    <div class="bg-secondary text-white text-center rounded p-2 mb-2" id="depositAddress">
-                        @depositAddress
-                    </div>
-                    <button class="btn btn-warning w-100" @onclick="CopyAddressAsync">COPY</button>
-                    @if (copySuccess)
+                                @if (copySuccess)
+                                {
+                                    <div class="text-success text-center mt-2">Address copied!</div>
+                                }
+
+                               
+                            }
+                            else if (depositModel.Method == "JazzCash" || depositModel.Method == "EasyPaisa" || depositModel.Method == "Paytm")
+                            {
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">
+                                        Amount (@(depositModel.Method == "Paytm" ? "INR" : "PKR"))
+                                    </label>
+                                    <InputNumber id="amount" class="form-control" @bind-Value="depositModel.Amount" />
+                                    <ValidationMessage For="@(() => depositModel.Amount)" />
+                                </div>
+                                <div class="mb-2 small text-muted">
+                                    @GetConversionInfo()
+                                </div>
+                                <div class="mb-2">
+                                    <b>You'll receive:</b>
+                                    <span class="fw-bold text-success">@CalculatedLUDC.ToString("0.##")</span> LUDC
+                                </div>
+                                <div class="mb-3">
+                                    <label for="ref" class="form-label">Transaction Reference / ID</label>
+                                    <InputText id="ref" class="form-control" @bind-Value="depositModel.Reference" />
+                                    <ValidationMessage For="@(() => depositModel.Reference)" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Upload Receipt Image</label>
+                                    <InputFile OnChange="HandleReceiptUpload" accept="image/*" />
+                                    @if (!string.IsNullOrEmpty(depositModel.ReceiptImageBase64))
+                                    {
+                                        <img src="@depositModel.ReceiptImageBase64" alt="Receipt Preview" class="img-thumbnail mt-2" style="max-height:120px;" />
+                                    }
+                                </div>
+                                <div class="alert alert-info text-center py-2 small mb-2">
+                                    Please send deposit to our official @depositModel.Method account and enter the reference/ID.
+                                </div>
+                                <button class="btn btn-primary w-100" type="submit">SUBMIT DEPOSIT</button>
+                            }
+                        }
+                    </EditForm>
+                    @if (successMessage != null)
                     {
-                        <div class="text-success text-center mt-2">Address copied!</div>
+                        <div class="alert alert-success mt-3">@successMessage</div>
                     }
                 </div>
             </div>
@@ -43,18 +122,121 @@
 </div>
 
 @code {
-    
-    private decimal totalBalance = 0.0m; // Replace with your real value
-    private string depositAddress = ""; // Replace with your actual address
+    private decimal totalBalance = 0.0m;
+    private string depositAddress = "";
     private string QRCodeUrl => $"https://api.qrserver.com/v1/create-qr-code/?data={depositAddress}&size=180x180";
     private bool copySuccess = false;
+    private string? successMessage;
 
-    protected override void OnInitialized()
+
+    private string? _phantomWalletAddress;
+
+    private DepositModel depositModel = new() { Method = "SOLANA" }; // Default
+    private List<string> methodOptions = new()
     {
-        // Safely check for nulls
+        "SOLANA", "USDC", "JazzCash", "EasyPaisa", "Paytm"
+    };
+
+    private decimal UsdcToPkrRate = 285m;
+    private decimal UsdcToInrRate = 83m;
+    private decimal SolToUsdRate = 140m;
+    private const decimal UsdcToLudcRate = 1000m;
+
+    private decimal PkrToLudcRate => UsdcToPkrRate > 0 ? (UsdcToLudcRate / UsdcToPkrRate) : 0;
+    private decimal InrToLudcRate => UsdcToInrRate > 0 ? (UsdcToLudcRate / UsdcToInrRate) : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        PlayerState.OnChange += UpdatePlayerData; // 🔁 Subscribe to changes
+
+        UpdatePlayerData(); // Load initial player info
+
+        try
+        {
+            _phantomWalletAddress = await JS.InvokeAsync<string>("walletInterop.connectPhantom");
+        }
+        catch
+        {
+            _phantomWalletAddress = null;
+        }
+
+        await FetchRates();
+    }
+    private void UpdatePlayerData()
+    {
         depositAddress = PlayerState.Player?.Wallet?.WalletAddress ?? "";
         totalBalance = PlayerState.Player?.Wallet?.AvailableBalance ?? 0.0m;
+
+        InvokeAsync(StateHasChanged); // Ensure the UI is updated
     }
+
+    private async Task FetchRates()
+    {
+        try
+        {
+            var usdcResp = await Http.GetAsync("https://api.coingecko.com/api/v3/simple/price?ids=usd-coin&vs_currencies=pkr,inr");
+            var usdcJson = await usdcResp.Content.ReadAsStringAsync();
+            var matchPkr = System.Text.RegularExpressions.Regex.Match(usdcJson, @"pkr"":([\d.]+)");
+            var matchInr = System.Text.RegularExpressions.Regex.Match(usdcJson, @"inr"":([\d.]+)");
+            if (matchPkr.Success) UsdcToPkrRate = decimal.Parse(matchPkr.Groups[1].Value);
+            if (matchInr.Success) UsdcToInrRate = decimal.Parse(matchInr.Groups[1].Value);
+
+            var solResp = await Http.GetAsync("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
+            var solJson = await solResp.Content.ReadAsStringAsync();
+            var matchSol = System.Text.RegularExpressions.Regex.Match(solJson, @"usd"":([\d.]+)");
+            if (matchSol.Success) SolToUsdRate = decimal.Parse(matchSol.Groups[1].Value);
+        }
+        catch
+        {
+            UsdcToPkrRate = 285m;
+            UsdcToInrRate = 83m;
+            SolToUsdRate = 140m;
+        }
+        StateHasChanged();
+    }
+
+    public class DepositModel
+    {
+        [Required(ErrorMessage = "Method is required.")]
+        public string? Method { get; set; }
+
+        [Range(0.0001, double.MaxValue, ErrorMessage = "Amount must be positive.")]
+        public decimal Amount { get; set; }
+
+        public string? Reference { get; set; }
+        public IBrowserFile? ReceiptImage { get; set; }
+        public string? ReceiptImageBase64 { get; set; }
+    }
+
+    private decimal CalculatedLUDC
+    {
+        get
+        {
+            if (depositModel.Method == "USDC")
+                return depositModel.Amount * UsdcToLudcRate;
+            if (depositModel.Method == "SOLANA")
+                return depositModel.Amount * SolToUsdRate * UsdcToLudcRate;
+            if (depositModel.Method == "JazzCash" || depositModel.Method == "EasyPaisa")
+                return depositModel.Amount * PkrToLudcRate;
+            if (depositModel.Method == "Paytm")
+                return depositModel.Amount * InrToLudcRate;
+            return 0;
+        }
+    }
+
+    private string GetConversionInfo()
+    {
+        if (depositModel.Method == "USDC")
+            return $"1 USDC = {UsdcToLudcRate} LUDC";
+        if (depositModel.Method == "SOLANA")
+            return $"1 SOL = {SolToUsdRate} USDC = {(SolToUsdRate * UsdcToLudcRate):0.##} LUDC";
+        if (depositModel.Method == "JazzCash" || depositModel.Method == "EasyPaisa")
+            return $"1 PKR = {PkrToLudcRate:F4} LUDC (1 USDC ≈ {UsdcToPkrRate} PKR)";
+        if (depositModel.Method == "Paytm")
+            return $"1 INR = {InrToLudcRate:F4} LUDC (1 USDC ≈ {UsdcToInrRate} INR)";
+        return "";
+    }
+
     private async Task CopyAddressAsync()
     {
         await JS.InvokeVoidAsync("navigator.clipboard.writeText", depositAddress);
@@ -62,6 +244,59 @@
         StateHasChanged();
         await Task.Delay(1200);
         copySuccess = false;
+        StateHasChanged();
+    }
+
+    private void MethodChanged(ChangeEventArgs e)
+    {
+        depositModel.Method = e.Value?.ToString();
+        depositModel.Amount = 0;
+        depositModel.Reference = "";
+        depositModel.ReceiptImage = null;
+        depositModel.ReceiptImageBase64 = null;
+        successMessage = null;
+    }
+
+    private async Task HandleReceiptUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        depositModel.ReceiptImage = file;
+        if (file != null)
+        {
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream(2 * 1024 * 1024).ReadAsync(buffer); // Max 2MB
+            depositModel.ReceiptImageBase64 = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+        }
+    }
+
+    private async Task HandleDeposit()
+    {
+        successMessage = depositModel.Method switch
+        {
+            "SOLANA" or "USDC" => $"Deposit to {depositModel.Method} address detected! Your balance will be updated after confirmation.",
+            "JazzCash" or "EasyPaisa" => $"Deposit of {depositModel.Amount} PKR ({CalculatedLUDC} LUDC) via {depositModel.Method} is being processed. Reference: {depositModel.Reference}",
+            "Paytm" => $"Deposit of {depositModel.Amount} INR ({CalculatedLUDC} LUDC) via Paytm is being processed. Reference: {depositModel.Reference}",
+            _ => $"Deposit submitted!"
+        };
+        depositModel = new DepositModel() { Method = "SOLANA" };
+        StateHasChanged();
+    }
+
+    private async Task DepositViaPhantomAsync()
+    {
+        if (string.IsNullOrEmpty(_phantomWalletAddress) || string.IsNullOrEmpty(depositAddress))
+            return;
+
+        if (depositModel.Method == "SOLANA")
+        {
+            await JS.InvokeVoidAsync("walletInterop.sendSol", depositAddress, depositModel.Amount);
+        }
+        else if (depositModel.Method == "USDC")
+        {
+            await JS.InvokeVoidAsync("walletInterop.sendUsdc", depositAddress, depositModel.Amount);
+        }
+
+        successMessage = $"Deposit of {depositModel.Amount} {depositModel.Method} sent from Phantom. Balance will update once confirmed.";
         StateHasChanged();
     }
 }

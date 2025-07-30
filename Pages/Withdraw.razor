@@ -1,6 +1,7 @@
 ﻿@page "/withdraw"
 @inject PlayerState PlayerState
 @inject IJSRuntime JS
+@inject HttpClient Http
 @using System.ComponentModel.DataAnnotations
 
 <div class="container my-5">
@@ -14,7 +15,7 @@
                     <div class="d-flex align-items-center justify-content-between bg-light rounded p-3 mb-4">
                         <div>
                             <div class="small text-muted">TOTAL BALANCE AVAILABLE</div>
-                            <div class="fw-bold">@totalBalance.ToString("0.00")</div>
+                            <div class="fw-bold">@totalBalance.ToString("0.00") LUDC</div>
                         </div>
                         <img src="solicon.webp" alt="Sol Icon" style="width:32px;height:32px;" />
                     </div>
@@ -23,10 +24,9 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                        <!-- GATEWAY (always show) -->
                         <div class="mb-3">
                             <label for="gateway" class="form-label">Payment Gateway</label>
-                            <InputSelect id="gateway" class="form-control" @bind-Value="withdrawModel.Gateway">
+                            <InputSelect id="gateway" class="form-control" @bind-Value="withdrawModel.Gateway" @onchange="GatewayChanged">
                                 @foreach (var gateway in gatewayOptions)
                                 {
                                     <option value="@gateway">@gateway</option>
@@ -43,6 +43,9 @@
                                     <label for="address" class="form-label">@withdrawModel.Gateway Address</label>
                                     <InputText id="address" class="form-control" @bind-Value="withdrawModel.Address" />
                                     <ValidationMessage For="@(() => withdrawModel.Address)" />
+                                    <div class="small text-muted mb-2">
+                                        Enter your Solana wallet address (32–44 chars, Base58).
+                                    </div>
                                 </div>
                             }
                             else if (withdrawModel.Gateway == "JazzCash" || withdrawModel.Gateway == "EasyPaisa" || withdrawModel.Gateway == "Paytm")
@@ -55,9 +58,13 @@
                             }
 
                             <div class="mb-3">
-                                <label for="amount" class="form-label">@withdrawModel.Gateway Amount</label>
+                                <label for="amount" class="form-label">@withdrawModel.Gateway Amount (LUDC)</label>
                                 <InputNumber id="amount" class="form-control" @bind-Value="withdrawModel.Amount" />
                                 <ValidationMessage For="@(() => withdrawModel.Amount)" />
+                            </div>
+
+                            <div class="mb-2 small text-muted">
+                                @GetReverseConversion()
                             </div>
                         }
 
@@ -66,7 +73,7 @@
                             {
                                 <button type="button" class="btn btn-secondary me-2" @onclick="PasteAddressAsync">PASTE ADDRESS</button>
                             }
-                            <button type="submit" class="btn btn-warning">SEND</button>
+                            <button type="submit" class="btn btn-warning" disabled="@(!CanWithdraw)">SEND</button>
                         </div>
                     </EditForm>
 
@@ -103,7 +110,6 @@
 
                             @if (string.IsNullOrWhiteSpace(UserPhone) || UserPhone == "###########")
                             {
-                                <!-- User can enter number -->
                                 <div class="mb-3">
                                     <label for="number" class="form-label">Enter your mobile number</label>
                                     <InputText id="number" class="form-control" @bind-Value="otpModel.Number" maxlength="15" />
@@ -113,7 +119,6 @@
                             }
                             else
                             {
-                                <!-- Display user's number, not editable -->
                                 <div class="mb-3">
                                     <label class="form-label">OTP will be sent to:</label>
                                     <div class="fw-bold mb-2">@UserPhone</div>
@@ -175,14 +180,54 @@
         "SOLANA", "USDC", "JazzCash", "EasyPaisa", "Paytm"
     };
 
-    protected override void OnInitialized()
+    // Dynamic rates
+    private decimal UsdcToPkrRate = 285m;
+    private decimal UsdcToInrRate = 83m;
+    private decimal SolToUsdRate = 140m;
+    private const decimal LudcToUsdcRate = 1000m;
+
+    protected override async Task OnInitializedAsync()
     {
         totalBalance = PlayerState.Player?.Wallet?.AvailableBalance ?? 0.0m;
+        try
+        {
+            withdrawModel.Address = await JS.InvokeAsync<string>("walletInterop.connectPhantom");
+        }
+        catch
+        {
+        }
+
+        await FetchRates();
+    }
+
+    private async Task FetchRates()
+    {
+        try
+        {
+            var usdcResp = await Http.GetAsync("https://api.coingecko.com/api/v3/simple/price?ids=usd-coin&vs_currencies=pkr,inr");
+            var usdcJson = await usdcResp.Content.ReadAsStringAsync();
+            var matchPkr = System.Text.RegularExpressions.Regex.Match(usdcJson, @"pkr"":([\d.]+)");
+            var matchInr = System.Text.RegularExpressions.Regex.Match(usdcJson, @"inr"":([\d.]+)");
+            if (matchPkr.Success) UsdcToPkrRate = decimal.Parse(matchPkr.Groups[1].Value);
+            if (matchInr.Success) UsdcToInrRate = decimal.Parse(matchInr.Groups[1].Value);
+
+            var solResp = await Http.GetAsync("https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd");
+            var solJson = await solResp.Content.ReadAsStringAsync();
+            var matchSol = System.Text.RegularExpressions.Regex.Match(solJson, @"usd"":([\d.]+)");
+            if (matchSol.Success) SolToUsdRate = decimal.Parse(matchSol.Groups[1].Value);
+        }
+        catch
+        {
+            UsdcToPkrRate = 285m;
+            UsdcToInrRate = 83m;
+            SolToUsdRate = 140m;
+        }
+        StateHasChanged();
     }
 
     private string UserPhone => PlayerState.Player?.PhoneNumber ?? "";
 
-    public class WithdrawModel
+    public class WithdrawModel : IValidatableObject
     {
         [Required(ErrorMessage = "Amount is required.")]
         [Range(0.0001, double.MaxValue, ErrorMessage = "Amount must be positive.")]
@@ -193,6 +238,24 @@
 
         [Required(ErrorMessage = "Please select a gateway.")]
         public string? Gateway { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if ((Gateway == "SOLANA" || Gateway == "USDC") && !string.IsNullOrWhiteSpace(Address))
+            {
+                if (!IsValidSolanaAddress(Address))
+                    yield return new ValidationResult("Invalid Solana address.", new[] { nameof(Address) });
+            }
+        }
+
+        private static bool IsValidSolanaAddress(string address)
+        {
+            // Solana address: base58, 32-44 chars, no 0/O/I/l
+            if (string.IsNullOrWhiteSpace(address)) return false;
+            if (address.Length < 32 || address.Length > 44) return false;
+            const string base58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+            return address.All(c => base58.Contains(c));
+        }
     }
 
     public class OtpModel
@@ -226,12 +289,42 @@
         }
     }
 
+    // Conversion logic
+    private decimal LUDCAmount => withdrawModel.Amount;
+    private decimal UsdcAmount => LUDCAmount / LudcToUsdcRate;
+    private decimal SolAmount => SolToUsdRate > 0 ? UsdcAmount / SolToUsdRate : 0;
+    private decimal PkrAmount => UsdcAmount * UsdcToPkrRate;
+    private decimal InrAmount => UsdcAmount * UsdcToInrRate;
+
+    private string GetReverseConversion()
+    {
+        if (withdrawModel.Amount <= 0) return string.Empty;
+        return withdrawModel.Gateway switch
+        {
+            "SOLANA" => $"{LUDCAmount} LUDC = {SolAmount:0.####} SOL (1 SOL = {SolToUsdRate} USDC)",
+            "USDC" => $"{LUDCAmount} LUDC = {UsdcAmount:0.####} USDC",
+            "JazzCash" or "EasyPaisa" => $"{LUDCAmount} LUDC = {PkrAmount:0.##} PKR (1 USDC ≈ {UsdcToPkrRate} PKR)",
+            "Paytm" => $"{LUDCAmount} LUDC = {InrAmount:0.##} INR (1 USDC ≈ {UsdcToInrRate} INR)",
+            _ => ""
+        };
+    }
+
+    private void GatewayChanged(ChangeEventArgs e)
+    {
+        withdrawModel.Gateway = e.Value?.ToString();
+        withdrawModel.Amount = 0;
+        withdrawModel.Address = "";
+        successMessage = null;
+    }
+
+    private bool CanWithdraw => withdrawModel.Amount > 0 && withdrawModel.Amount <= totalBalance;
+
     private async Task HandleWithdraw()
     {
         otpError = null;
         otpSent = false;
 
-        // Pre-fill the number if available and valid
+        // If user has a phone number in their profile, use it, else ask for input in modal
         if ((withdrawModel.Gateway == "JazzCash" || withdrawModel.Gateway == "EasyPaisa" || withdrawModel.Gateway == "Paytm") &&
             (!string.IsNullOrWhiteSpace(UserPhone) && UserPhone != "###########"))
         {
@@ -270,7 +363,6 @@
         }
     }
 
-    // When OTP is submitted
     private async Task HandleOtpSubmit()
     {
         var confirmed = await ConfirmOtpAsync(withdrawModel, otpModel.Otp);
@@ -295,17 +387,14 @@
         otpSent = false;
     }
 
-    // Replace these with your own API/service calls
     private async Task<bool> SendOtpRequestAsync(WithdrawModel model, string? number = null)
     {
-        // Call your backend to send OTP
         await Task.Delay(500); // Simulate API call
-        return true; // or false if failed
+        return true;
     }
 
     private async Task<bool> ConfirmOtpAsync(WithdrawModel model, string? otp)
     {
-        // Call your backend to confirm the OTP
         await Task.Delay(500); // Simulate API call
         return otp == "123456"; // Accept only 123456 as demo OTP
     }

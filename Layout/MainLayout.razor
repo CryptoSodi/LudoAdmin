@@ -1,7 +1,10 @@
 ﻿@inherits LayoutComponentBase
 @inject LudoAdmin.Service.AuthService Auth
+@inject LudoAdmin.Service.HubService Hub;
 @inject NavigationManager Nav
 @inject PlayerState PlayerState
+@inject IJSRuntime JS
+@implements IDisposable
 
 @if (!_isChecked)
 {
@@ -19,7 +22,18 @@ else if (_isLoggedIn)
 
         <main>
             <div class="top-row px-4">
-                <button @onclick="Logout" style="background:none; border:none; color:#4285F4; cursor:pointer; font-size:1em; text-decoration:underline;">Logout</button>
+                <div class="top-row px-4">
+                    @if (string.IsNullOrEmpty(_phantomWalletAddress))
+                    {
+                        <button @onclick="ConnectPhantomWallet">Connect Phantom</button>
+                    }
+                    else
+                    {
+                        <span style="margin-right: 10px;">Connected: @_phantomWalletAddress</span>
+                        <button @onclick="DisconnectPhantomWallet">Disconnect Phantom</button>
+                    }
+                    <button @onclick="Logout" style="background:none; border:none; color:#4285F4; cursor:pointer; font-size:1em; text-decoration:underline;">Logout</button>
+                </div>
             </div>
 
             <article class="content px-4">
@@ -39,8 +53,11 @@ else
     </div>
 }
 @code {
+    private string _phantomWalletAddress;
     private bool _isChecked = false;
     private bool _isLoggedIn = false;
+    private PeriodicTimer? _playerRefreshTimer;
+    private CancellationTokenSource _cts = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -64,11 +81,90 @@ else
         {
             var player = await Auth.GetPlayerInfoAsync();
             PlayerState.SetPlayer(player);
+            _phantomWalletAddress = await JS.InvokeAsync<string>("walletInterop.connectPhantom");
+
+            StartPlayerRefreshTimer(); // 🔁 Start periodic refresh
         }
     }
+    private void StartPlayerRefreshTimer()
+    {
+        _playerRefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(30)); // Adjust interval as needed
+
+        _ = Task.Run(async () =>
+        {
+            while (await _playerRefreshTimer.WaitForNextTickAsync(_cts.Token))
+            {
+                try
+                {
+                    var player = await Auth.GetPlayerInfoAsync();
+                    var updatedPlayer = await Hub.UserConnectedSetID(player.AuthToken);
+                    PlayerState.SetPlayer(updatedPlayer);
+                    await Auth.SetPlayerInfoAsync(updatedPlayer);
+                    await InvokeAsync(StateHasChanged); // Refresh UI if needed
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error refreshing player info: {ex.Message}");
+                }
+            }
+        });
+    }
+
     private async Task Logout()
     {
         await Auth.RemoveAccessTokenAsync();
         Nav.NavigateTo("/login", true);
+    }
+
+    private async Task ConnectPhantomWallet()
+    {
+        var publicKey = await JS.InvokeAsync<string>("walletInterop.connectPhantom");
+        if (!string.IsNullOrEmpty(publicKey))
+        {
+            _phantomWalletAddress = publicKey;
+            Console.WriteLine($"Connected to Phantom: {publicKey}");
+        }
+    }
+
+    private async Task DisconnectPhantomWallet()
+    {
+        var success = await JS.InvokeAsync<bool>("walletInterop.disconnectPhantom");
+        if (success)
+        {
+            Console.WriteLine("Phantom wallet disconnected.");
+            _phantomWalletAddress = null;
+        }
+        else
+        {
+            Console.WriteLine("Phantom wallet failed to disconnect.");
+        }
+    }
+
+    private async Task ConnectMetaMask()
+    {
+        var account = await JS.InvokeAsync<string>("walletInterop.connectMetaMask");
+        if (!string.IsNullOrEmpty(account))
+        {
+            Console.WriteLine($"Connected to MetaMask: {account}");
+        }
+    }
+
+    private async Task SendSol(string toAddress, decimal amountInSol)
+    {
+        var txSignature = await JS.InvokeAsync<string>("walletInterop.sendSol", toAddress, amountInSol);
+        if (!string.IsNullOrEmpty(txSignature))
+        {
+            Console.WriteLine($"Transaction successful: {txSignature}");
+        }
+        else
+        {
+            Console.WriteLine("Transaction failed.");
+        }
+    }
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _playerRefreshTimer?.Dispose();
+        _cts.Dispose();
     }
 }
