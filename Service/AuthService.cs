@@ -30,7 +30,7 @@
 
         public async Task<PlayerInfo> GetPlayerInfoAsync()
         {
-            var json = await _js.InvokeAsync<string>("localStorage.getItem", Key);
+            string json = await _js.InvokeAsync<string>("localStorage.getItem", Key);
             if (string.IsNullOrWhiteSpace(json))
                 return null;
 
