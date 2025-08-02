@@ -1,58 +1,93 @@
 ﻿@page "/transactions"
+@inject PlayerState PlayerState
 
 <h3>Transactions</h3>
 
-@if (transactions.Count == 0)
+@if (PagedTransactions == null || PagedTransactions.Count == 0)
 {
     <div>No transactions yet.</div>
 }
 else
 {
+    <div class="mb-2 d-flex justify-content-between align-items-center">
+        <span>Showing @startIndex - @endIndex of @totalTransactions transactions</span>
+        <div>
+            <button class="btn btn-sm btn-outline-secondary me-1" @onclick="PrevPage" disabled="@isFirstPage">Previous</button>
+            <span class="fw-semibold">Page @currentPage of @totalPages</span>
+            <button class="btn btn-sm btn-outline-secondary ms-1" @onclick="NextPage" disabled="@isLastPage">Next</button>
+        </div>
+    </div>
+
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Type</th>
+                <th>Transaction Id</th>
+                <th>Description</th>
                 <th>Amount</th>
-                <th>Status</th>
-                <th>Reference</th>
+                <th>Date</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var tx in transactions)
+            @foreach (var tx in PagedTransactions)
             {
+                Console.WriteLine("______________________>" + tx.Description);
                 <tr>
-                    <td>@tx.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@tx.TransactionId</td>
+                    
                     <td>
-                        @if (tx.Type == "Deposit")
+                        @switch (tx.Description)
                         {
-                            <span class="text-success fw-bold">
-                                <i class="bi bi-cash-coin"></i> Deposit
-                            </span>
+                            case "On-chain sweep":
+                                <span class="text-success fw-semibold">
+                                    <i class="bi bi-cash-coin me-1"></i>Deposit
+                                </span>
+                                break;
+
+                            case "Withdrawal":
+                                <span class="text-danger fw-semibold">
+                                    <i class="bi bi-coin me-1"></i>Withdrawal
+                                </span>
+                                break;
+
+                            case "GameWin":
+                                <span class="text-success fw-semibold">
+                                    <i class="bi bi-trophy-fill me-1"></i>Game Win
+                                </span>
+                                break;
+
+                            case "GameLoss":
+                                <span class="text-danger fw-semibold">
+                                    <i class="bi bi-x-circle-fill me-1"></i>Game Loss
+                                </span>
+                                break;
+
+                            case "Game Fee":
+                                <span class="text-secondary fw-semibold">
+                                    <i class="bi bi-controller me-1"></i>Game Fee
+                                </span>
+                                break;
+
+                            case "Game Refund":
+                                <span class="text-info fw-semibold">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Game Refund
+                                </span>
+                                break;
+
+                            case "Daily Bonus":
+                                <span class="text-warning fw-semibold">
+                                    <i class="bi bi-gift me-1"></i>Daily Bonus
+                                </span>
+                                break;
+
+                            default:
+                                <span class="text-muted">@tx.Description</span>
+                                break;
                         }
-                        else if (tx.Type == "Withdraw")
-                        {
-                            <span class="text-danger fw-bold">
-                                <i class="bi bi-coin"></i> Withdraw
-                            </span>
-                        }
+
+
                     </td>
-                    <td>@tx.Amount.ToString("C")</td>
-                    <td>
-                        @if (tx.Status == "Completed")
-                        {
-                            <span class="badge bg-success">Completed</span>
-                        }
-                        else if (tx.Status == "Pending")
-                        {
-                            <span class="badge bg-warning text-dark">Pending</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">Failed</span>
-                        }
-                    </td>
-                    <td>@tx.Reference</td>
+                    <td>@tx.Amount.ToString() Ludc</td>
+                    <td>@tx.CreatedDate.ToString("yyyy-MM-dd HH:mm")</td>
                 </tr>
             }
         </tbody>
@@ -60,20 +95,51 @@ else
 }
 
 @code {
-    public class Transaction
+    private int currentPage = 1;
+    private int pageSize = 30;
+    private int totalTransactions => PlayerState.Player?.Wallet?.Transactions?.Count ?? 0;
+    private int totalPages => (int)Math.Ceiling((double)totalTransactions / pageSize);
+
+    private List<SharedCode.Constants.WalletTransaction> PagedTransactions = new();
+
+    private bool isFirstPage => currentPage == 1;
+    private bool isLastPage => currentPage == totalPages;
+
+    private int startIndex => ((currentPage - 1) * pageSize) + 1;
+    private int endIndex => Math.Min(currentPage * pageSize, totalTransactions);
+
+    protected override void OnInitialized()
     {
-        public DateTime Date { get; set; }
-        public string Type { get; set; } // "Deposit" or "Withdraw"
-        public decimal Amount { get; set; }
-        public string Status { get; set; } // "Completed", "Pending", "Failed"
-        public string Reference { get; set; }
+        LoadPage();
     }
 
-    private List<Transaction> transactions = new List<Transaction>
+    private void LoadPage()
     {
-        new Transaction { Date = DateTime.Now.AddDays(-2), Type = "Deposit", Amount = 50, Status = "Completed", Reference = "TXN001" },
-        new Transaction { Date = DateTime.Now.AddDays(-1), Type = "Withdraw", Amount = 20, Status = "Completed", Reference = "TXN002" },
-        new Transaction { Date = DateTime.Now.AddHours(-6), Type = "Deposit", Amount = 100, Status = "Pending", Reference = "TXN003" },
-        new Transaction { Date = DateTime.Now.AddMinutes(-45), Type = "Withdraw", Amount = 10, Status = "Failed", Reference = "TXN004" }
-    };
+        if (PlayerState.Player?.Wallet?.Transactions != null)
+        {
+            PagedTransactions = PlayerState.Player.Wallet.Transactions
+                .OrderByDescending(t => t.CreatedDate)
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+        }
+    }
+
+    private void NextPage()
+    {
+        if (!isLastPage)
+        {
+            currentPage++;
+            LoadPage();
+        }
+    }
+
+    private void PrevPage()
+    {
+        if (!isFirstPage)
+        {
+            currentPage--;
+            LoadPage();
+        }
+    }
 }

@@ -88,7 +88,7 @@ else
     }
     private void StartPlayerRefreshTimer()
     {
-        _playerRefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(30)); // Adjust interval as needed
+        _playerRefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(30)); // Adjust interval as needed 
 
         _ = Task.Run(async () =>
         {
