@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@using LudoAdmin.Pages
+@using SharedCode.Constants
+@inherits LayoutComponentBase
 @inject LudoAdmin.Service.AuthService Auth
 @inject LudoAdmin.Service.HubService Hub;
 @inject NavigationManager Nav
@@ -6,44 +8,76 @@
 @inject IJSRuntime JS
 @implements IDisposable
 
-@if (!_isChecked)
-{
-    <!-- Optional: Add a spinner or loading text -->
-    <div style="text-align:center; padding:40px;">
-        <h3>Checking authentication...</h3>
-    </div>
-}
-else if (_isLoggedIn)
-{
+@if (!Nav.Uri.Contains("login")){
     <div class="page">
-        <div class="sidebar">
-            <NavMenu />
-        </div>
+        @if (!Nav.Uri.EndsWith("/") && !Nav.Uri.Contains("#"))
+        {
+            
+            <div class="sidebar">
+                <NavMenu />
+            </div>
+        }
 
         <main>
-            <div class="top-row px-4">
-                <div class="top-row px-4">
-                    @if (string.IsNullOrEmpty(_phantomWalletAddress))
+            <!-- Navbar -->
+            <nav class="bg-gray-900 sticky top-0 z-50 shadow">
+                <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+
+                    @if (Nav.Uri.EndsWith("/") || Nav.Uri.Contains("#"))
                     {
-                        <button @onclick="ConnectPhantomWallet">Connect Phantom</button>
+                        <a class="navbar-brand d-flex align-items-center" href="">
+                            <img src="logo.png" alt="Ludo Cities Logo" style="height:3rem; width:auto; margin-right:0.5rem;">
+                            <h1 class="text-xl font-bold text-yellow-400">Ludo Cities</h1>
+                        </a>
+                        
                     }
-                    else
-                    {
-                        <span style="margin-right: 10px;">Connected: @_phantomWalletAddress</span>
-                        <button @onclick="DisconnectPhantomWallet">Disconnect Phantom</button>
-                    }
-                    <button @onclick="Logout" style="background:none; border:none; color:#4285F4; cursor:pointer; font-size:1em; text-decoration:underline;">Logout</button>
+
+                    <ul class="hidden md:flex space-x-6 text-gray-200">
+                        <li><a href="" class="hover:text-yellow-400 transition">Home</a></li>
+                        <li><a href="#about" class="hover:text-yellow-400 transition">About</a></li>
+                        <li><a href="#features" class="hover:text-yellow-400 transition">Features</a></li>
+                        <li><a href="#nfts" class="hover:text-yellow-400 transition">NFTs</a></li>
+                        <li><a href="#tokenomics" class="hover:text-yellow-400 transition">Tokenomics</a></li>
+                        <li><a href="#roadmap" class="hover:text-yellow-400 transition">Roadmap</a></li>
+                        <li><a href="#community" class="hover:text-yellow-400 transition">Community</a></li>                        
+                        <li>
+                        <NavLink class="nav-link" href="dashboard" Match="NavLinkMatch.All">
+                            <span class="hover:text-yellow-400 transition" aria-hidden="true"></span> Dashboard
+                        </NavLink>
+                        </li>
+                    </ul>
+                    <div class="space-x-2">
+                        @if (_isLoggedIn)
+                        {
+                            <a href="#" @onclick="Logout" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300 transition">Logout</a>
+                        }
+                        else
+                        {
+                            <a href="#" @onclick="LoginWithGoogle" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300 transition">Login</a>
+                        }
+                        @if (string.IsNullOrEmpty(_phantomWalletAddress))
+                        {
+                            <a href="#" @onclick="ConnectPhantomWallet" class="px-4 py-2 border border-yellow-400 text-yellow-400 rounded hover:bg-yellow-400 hover:text-black transition">Connect Phantom</a>
+                        }
+                        else
+                        {
+                            <a href="#" @onclick="DisconnectPhantomWallet" class="px-4 py-2 border border-yellow-400 text-yellow-400 rounded hover:bg-yellow-400 hover:text-black transition">
+                                Disconnect @($"{_phantomWalletAddress?.Substring(0, 4)}...{_phantomWalletAddress?.Substring(_phantomWalletAddress.Length - 4)}")
+                            </a>
+                        }
+                    </div>
                 </div>
-            </div>
+            </nav>
 
             <article class="content px-4">
                 @Body
             </article>
         </main>
     </div>
-}
-else
-{
+
+    }
+    else
+    {
     <div class="page">        
         <main>
             <article class="content px-4">
@@ -51,13 +85,86 @@ else
             </article>
         </main>
     </div>
-}
+    }
 @code {
     private string _phantomWalletAddress;
     private bool _isChecked = false;
     private bool _isLoggedIn = false;
     private PeriodicTimer? _playerRefreshTimer;
     private CancellationTokenSource _cts = new();
+    // Replace these with your actual values from Google Developer Console
+    private string clientId = "973406093603-dlm3o6jrkuf6b1m1lc7m8hir9qc4cul5.apps.googleusercontent.com";
+    private string redirectUri => Nav.BaseUri + "auth-callback"; // We will create this page next
+    private string? ErrorMessage;
+    private DotNetObjectReference<MainLayout>? objRef;
+    protected override void OnInitialized()
+    {
+        objRef = DotNetObjectReference.Create(this);
+    }
+    private async Task LoginWithGoogle()
+    {
+        ErrorMessage = null; // Clear previous error, if any
+        var nonce = Guid.NewGuid().ToString();
+
+        var url =
+            $"https://accounts.google.com/o/oauth2/v2/auth" +
+            $"?client_id={clientId}" +
+            $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
+            $"&response_type=id_token" +
+            $"&scope=openid%20email%20profile" +
+            $"&nonce={nonce}" +
+            $"&prompt=select_account";
+
+        await JS.InvokeVoidAsync("window.registerGoogleAuthCallback", objRef);
+        await JS.InvokeVoidAsync("openGoogleLoginPopup", url);
+    }
+
+    [JSInvokable]
+    public async Task OnGoogleAuthSuccess(string token)
+    {
+        try
+        {
+            PlayerInfo player = await Hub.SendUserLoggedInEvent(token);
+            if (player != null)
+            {
+                await Auth.SetPlayerInfoAsync(player);
+                PlayerState.SetPlayer(player); // <-- update global state here
+               // Nav.NavigateTo("/", true);
+                _isLoggedIn = true;
+                StartPlayerRefreshTimer();
+
+                await InvokeAsync(StateHasChanged); // Force UI update
+                _phantomWalletAddress = await JS.InvokeAsync<string>("walletInterop.connectPhantom");
+            }
+            else
+            {
+                ErrorMessage = "Login failed. Please try again.";
+                await InvokeAsync(StateHasChanged);
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message.Contains("Hub"))
+            {
+                ErrorMessage = $"Login error: Please check your Internet reload the page!";
+            }
+            else
+            {
+                ErrorMessage = $"Login error: {ex.Message}";
+            }
+            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+        _cts.Cancel();
+        _playerRefreshTimer?.Dispose();
+        _cts.Dispose();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,7 +182,7 @@ else
 
         if (!_isLoggedIn)
         {
-            Nav.NavigateTo("/login", true);
+           
         }
         else
         {
@@ -86,9 +193,17 @@ else
             StartPlayerRefreshTimer(); // 🔁 Start periodic refresh
         }
     }
+
     private void StartPlayerRefreshTimer()
     {
-        _playerRefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(30)); // Adjust interval as needed 
+        // Stop and dispose any existing timer before creating a new one
+        _playerRefreshTimer?.Dispose();
+        _playerRefreshTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+
+        // Cancel any previous task loop
+        _cts.Cancel();
+        _cts.Dispose();
+        _cts = new CancellationTokenSource(); // Create new CTS for new loop
 
         _ = Task.Run(async () =>
         {
@@ -100,7 +215,12 @@ else
                     var updatedPlayer = await Hub.UserConnectedSetID(player.AuthToken);
                     PlayerState.SetPlayer(updatedPlayer);
                     await Auth.SetPlayerInfoAsync(updatedPlayer);
-                    await InvokeAsync(StateHasChanged); // Refresh UI if needed
+                    await InvokeAsync(StateHasChanged); // Update UI
+                }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine("Player refresh timer stopped.");
+                    break;
                 }
                 catch (Exception ex)
                 {
@@ -112,8 +232,28 @@ else
 
     private async Task Logout()
     {
-        await Auth.RemoveAccessTokenAsync();
-        Nav.NavigateTo("/login", true);
+        try
+        {
+            await Auth.RemoveAccessTokenAsync(); // Clear login token
+            
+            _isLoggedIn = false;
+            _phantomWalletAddress = null;
+
+            // Disconnect wallet on logout
+            await JS.InvokeVoidAsync("walletInterop.disconnectPhantom");
+
+            await InvokeAsync(StateHasChanged); // Refresh UI
+            _cts.Cancel();                     // stop the loop
+            _playerRefreshTimer?.Dispose();    // dispose timer
+            _cts.Dispose();                    // cleanup old CTS
+            _cts = new CancellationTokenSource(); // prepare for next login
+      //      Nav.NavigateTo("/", forceLoad: true); // Navigate home or to login page
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Logout error: {ex.Message}");
+        }
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ConnectPhantomWallet()
@@ -160,11 +300,5 @@ else
         {
             Console.WriteLine("Transaction failed.");
         }
-    }
-    public void Dispose()
-    {
-        _cts.Cancel();
-        _playerRefreshTimer?.Dispose();
-        _cts.Dispose();
     }
 }

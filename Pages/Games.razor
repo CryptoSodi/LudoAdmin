@@ -1,27 +1,93 @@
 ﻿@page "/games"
+@inject PlayerState PlayerState
+@using SharedCode.Constants
+@inject LudoAdmin.Service.HubService Hub
+@inject LudoAdmin.Service.AuthService Auth
 
+<h3>Game History</h3>
 
-@if (games.Count == 0)
+@if (games == null)
 {
-    <div>No games played yet.</div>
+    <p>Loading games...</p>
+}
+else if (games.Count == 0)
+{
+    <p>No games played yet.</p>
 }
 else
 {
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Game</th>
-                <th>Date Played</th>
-                <th>Result</th>
+                <th>ID</th>
+                <th>Game Type</th>
+                <th>Room Code</th>
+                <th>State</th>
+                <th>Bet Amount</th>
+                <th>Win State</th>                
+                <th>Is Private</th>
+                <th>Date</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var game in games)
             {
                 <tr>
-                    <td>@game.Name</td>
-                    <td>@game.PlayedOn.ToString("yyyy-MM-dd")</td>
-                    <td>@game.Result</td>
+                    <td>@game.GameId</td>
+                    <td>
+                        @if (game.GameType == "2")
+                        {
+                            @:1vs1
+                        }
+                        else if (game.GameType == "3")
+                        {
+                            @:1vs2
+                            
+                        }else if (game.GameType == "4")
+                        {
+                            @:1vs3
+                        }
+                        else if (game.GameType == "22")
+                        {
+                            @:2vs2
+                        }
+                        else
+                        {
+                            @:Unknown
+                        }
+                    </td>
+                    <td>@game.RoomCode</td>
+                    <td>@game.State</td>
+                    <td>@game.BetAmount</td>
+                    <td>
+                        @if (game.Winner1 == PlayerState.Player.PlayerId || game.Winner2 == PlayerState.Player.PlayerId)
+                        {
+                            @if (game.GameType == "2" || game.GameType == "22")
+                            {
+                                @:Won @(game.BetAmount * 2)
+                            }
+                            else if (game.GameType == "3")
+                            {
+                                @:Won @(game.BetAmount * 3)
+
+                            }
+                            else if (game.GameType == "4")
+                            {
+                                @:Won @(game.BetAmount * 4)
+                            }
+                            else
+                            {
+                                @:Unknown
+                            }
+                        }
+                        else
+                        {
+                            
+                                @:Lost @(game.BetAmount)
+                        }
+                    </td>
+                    <td>@game.IsPrivate</td>
+                    <td>@game.CreatedDate.ToString("yyyy-MM-dd HH:mm")</td>
                 </tr>
             }
         </tbody>
@@ -29,17 +95,19 @@ else
 }
 
 @code {
-    public class Game
+    private List<LudoClient.Models.Game>? games;
+    private PlayerInfo playerInfo;
+    protected override async Task OnInitializedAsync()
     {
-        public string Name { get; set; }
-        public DateTime PlayedOn { get; set; }
-        public string Result { get; set; }
+        try
+        {
+            bool isPrivate = false;
+            games = await Hub.GetGame(PlayerState.Player.AuthToken);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching games: {ex.Message}");
+            games = new(); // fallback to empty list on error
+        }
     }
-
-    private List<Game> games = new List<Game>
-    {
-        new Game { Name = "Classic Ludo", PlayedOn = DateTime.Now.AddDays(-3), Result = "Won" },
-        new Game { Name = "Super Ludo", PlayedOn = DateTime.Now.AddDays(-1), Result = "Lost" },
-        new Game { Name = "Quick Ludo", PlayedOn = DateTime.Now, Result = "Won" }
-    };
 }

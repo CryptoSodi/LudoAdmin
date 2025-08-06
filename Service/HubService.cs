@@ -1,8 +1,10 @@
 ﻿namespace LudoAdmin.Service
 {
-    using SharedCode;
     using Microsoft.AspNetCore.SignalR.Client;
+    using SharedCode;
     using SharedCode.Constants;
+    using System.Net.Sockets;
+    using static LudoAdmin.Pages.Games;
 
     public class HubService : IAsyncDisposable
     {
@@ -39,6 +41,11 @@
                 throw new InvalidOperationException("Hub connection is not established.");
             PlayerInfo player = await _hubConnection.InvokeAsync<PlayerInfo>("UserConnectedSetID", authToken).ConfigureAwait(false);
             return player;
+        }
+        public async Task<List<LudoClient.Models.Game>> GetGame(string authToken)
+        {
+            List<LudoClient.Models.Game> games = await _hubConnection.InvokeAsync<List<LudoClient.Models.Game>>("GetGame", authToken, false).ConfigureAwait(false);
+            return games?.Where(g => g.State == "Completed").ToList() ?? new List<LudoClient.Models.Game>();
         }
         public async ValueTask DisposeAsync()
         {

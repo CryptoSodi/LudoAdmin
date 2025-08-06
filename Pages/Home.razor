@@ -1,13 +1,124 @@
 ﻿@inject PlayerState PlayerState
 @page "/"
+<body class="bg-gray-950 text-white font-sans scroll-smooth">
+
+  
+    <!-- Hero -->
+    <section class="bg-gradient-to-r from-yellow-500 to-pink-500 text-black py-24 text-center">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl md:text-6xl font-bold mb-4">Stake. Play. Conquer. Earn.</h2>
+            <p class="text-lg md:text-xl mb-6 text-white">A Web3 Ludo Metaverse Where You Earn by Playing and Owning Cities.</p>
+            <a href="#" class="bg-black text-yellow-400 px-6 py-3 rounded-full text-lg hover:bg-gray-800 transition">Start Playing</a>
+        </div>
+    </section>
+
+    <!-- About (Fixed) -->
+    <section id="about" class="py-20 bg-white text-center">
+        <div class="container mx-auto px-4 max-w-3xl">
+            <h3 class="text-3xl font-bold mb-6 text-yellow-400">Why Ludo Cities?</h3>
+            <p class="text-gray-700 leading-relaxed text-lg">
+                Ludo Cities fuses nostalgic board gameplay with real economic utility. Earn tokens in PvP matches, own NFT cities, and generate passive yield from gameplay in your region. Powered by Solana, it’s built for Web3 gamers and casual players alike.
+            </p>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-3xl font-bold mb-10 text-yellow-400">Core Features</h3>
+            <div class="grid md:grid-cols-3 gap-8 text-left">
+                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xl font-semibold mb-2 text-yellow-300">🎮 PvP Matches</h4>
+                    <p class="text-gray-300">Stake LUDC tokens to play skill-based Ludo matches against real opponents.</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xl font-semibold mb-2 text-blue-300">🏙 NFT Cities</h4>
+                    <p class="text-gray-300">Own city NFTs and earn passive income from regional match activity.</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xl font-semibold mb-2 text-indigo-300">🔐 Civic & Phantom</h4>
+                    <p class="text-gray-300">Secure wallet and identity via Phantom and Civic for KYC and anti-cheat.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="py-20 bg-gray-950 text-center">
+        <div class="container mx-auto px-4">
+            <h3 class="text-3xl font-bold mb-6 text-yellow-400">How It Works</h3>
+            <p class="text-gray-700 leading-relaxed text-lg">Stake → Match → Win/Lose → Earn → Upgrade/Mint NFTs → Re-stake</p>
+            <br />
+            <a href="#" class="text-yellow-400 underline">View Full Game Flow</a>
+        </div>
+    </section>
+
+    <!-- NFTs & Tokenomics -->
+    <section id="nfts" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h3 class="text-3xl font-bold mb-8 text-center text-yellow-400">NFT Ownership & Tokenomics</h3>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-gray-800 p-6 rounded shadow">
+                    <h4 class="text-xl font-semibold mb-2 text-blue-400">🔹 City NFTs</h4>
+                    <p class="text-gray-300">Earn from regional activity. Each city glows with live match data and revenue stats.</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded shadow">
+                    <h4 class="text-xl font-semibold mb-2 text-green-400">💰 Token Distribution</h4>
+                    <ul class="list-disc list-inside text-gray-300">
+                        <li>35% – Play-to-Earn</li>
+                        <li>20% – Treasury</li>
+                        <li>15% – Team</li>
+                        <li>10% – IDO</li>
+                        <li>10% – Staking</li>
+                        <li>5% – Marketing</li>
+                        <li>5% – Advisors</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section id="roadmap" class="py-20 bg-gray-950 text-center">
+        <div class="container mx-auto px-4">
+            <h3 class="text-3xl font-bold mb-8 text-yellow-400">Roadmap</h3>
+            <div class="max-w-3xl mx-auto text-left text-gray-700 space-y-4">
+                <p>✅ Phase 1 – MVP (Live Android Game)</p>
+                <p>🚀 Phase 2 – Website & Wallet (Current)</p>
+                <p>📈 Phase 3 – Public Token Launch</p>
+                <p>🏙 Phase 4 – NFT Minting & Marketplace</p>
+                <p>🧠 Phase 5 – DAO + Second Game (Snake & Ladder)</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community -->
+    <section id="community" class="py-20 bg-gray-900 text-center">
+        <div class="container mx-auto px-4">
+            <h3 class="text-3xl font-bold mb-6 text-yellow-400">Join the Community</h3>
+            <p class="text-gray-300 mb-6">Connect with other players, compete in tournaments, and rise to the top of the leaderboard.</p>
+            <div class="flex justify-center space-x-4">
+                <a href="#" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300 transition">Join Discord</a>
+                <a href="#" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300 transition">Follow on Twitter</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-950 text-gray-500 py-6 text-center text-sm">
+        <p>&copy; 2025 Ludo Cities. All rights reserved.</p>
+        <p>
+            <a href="#" class="hover:text-white">Terms</a> •
+            <a href="#" class="hover:text-white">Privacy</a> •
+            <a href="#" class="hover:text-white">Support</a>
+        </p>
+    </footer>
+
+</body>
 
 
-
-<PageTitle>Home</PageTitle>
 @if (PlayerState.Player != null)
 {
     <p>Welcome, @PlayerState.Player.Name!</p>
 }
 <h1>Hello, world!</h1>
-
-Welcome to your new app.
