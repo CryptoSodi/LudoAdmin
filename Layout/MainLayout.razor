@@ -7,17 +7,25 @@
 @inject PlayerState PlayerState
 @inject IJSRuntime JS
 @implements IDisposable
-
+<script>
+    function reloadLogo() {
+      const logo = document.querySelector('img[alt="Ludo Cities Logo"]');
+      if (logo) {
+        // Force reload
+        const src = logo.getAttribute('src');
+        logo.setAttribute('src', '');
+        logo.setAttribute('src', src);
+      }
+    }
+</script>
 @if (!Nav.Uri.Contains("login")){
     <div class="page">
         @if (!Nav.Uri.EndsWith("/") && !Nav.Uri.Contains("#"))
         {
-            
             <div class="sidebar">
                 <NavMenu />
             </div>
         }
-
         <main>
             <!-- Navbar -->
             <nav class="bg-gray-900 sticky top-0 z-50 shadow">
@@ -25,21 +33,17 @@
 
                     @if (Nav.Uri.EndsWith("/") || Nav.Uri.Contains("#"))
                     {
-                        <a class="navbar-brand d-flex align-items-center" href="">
-                            <img src="logo.png" alt="Ludo Cities Logo" style="height:3rem; width:auto; margin-right:0.5rem;">
+                        <a class="navbar-brand d-flex align-items-center" href="/">
+                            <img @key="_isLoggedIn" src="img/logo.png" alt="Ludo Cities Logo" style="height:3rem; width:auto; margin-right:0.5rem;">
                             <h1 class="text-xl font-bold text-yellow-400">Ludo Cities</h1>
                         </a>
-                        
                     }
 
                     <ul class="hidden md:flex space-x-6 text-gray-200">
                         <li><a href="" class="hover:text-yellow-400 transition">Home</a></li>
-                        <li><a href="#about" class="hover:text-yellow-400 transition">About</a></li>
-                        <li><a href="#features" class="hover:text-yellow-400 transition">Features</a></li>
                         <li><a href="#nfts" class="hover:text-yellow-400 transition">NFTs</a></li>
-                        <li><a href="#tokenomics" class="hover:text-yellow-400 transition">Tokenomics</a></li>
-                        <li><a href="#roadmap" class="hover:text-yellow-400 transition">Roadmap</a></li>
-                        <li><a href="#community" class="hover:text-yellow-400 transition">Community</a></li>                        
+                        <li><a href="#about" class="hover:text-yellow-400 transition">About</a></li>
+                        <li><a href="#roadmap" class="hover:text-yellow-400 transition">Roadmap</a></li>                        
                         <li>
                         <NavLink class="nav-link" href="dashboard" Match="NavLinkMatch.All">
                             <span class="hover:text-yellow-400 transition" aria-hidden="true"></span> Dashboard
@@ -69,7 +73,7 @@
                 </div>
             </nav>
 
-            <article class="content px-4">
+            <article class="content p-0" style="padding-left:0!important;padding-right:0!important;">
                 @Body
             </article>
         </main>
@@ -80,7 +84,7 @@
     {
     <div class="page">        
         <main>
-            <article class="content px-4">
+            <article class="content p-0 ">
                 @Body
             </article>
         </main>
@@ -117,6 +121,7 @@
 
         await JS.InvokeVoidAsync("window.registerGoogleAuthCallback", objRef);
         await JS.InvokeVoidAsync("openGoogleLoginPopup", url);
+        await JS.InvokeVoidAsync("reloadLogo");
     }
 
     [JSInvokable]

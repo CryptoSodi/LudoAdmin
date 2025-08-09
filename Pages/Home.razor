@@ -1,41 +1,167 @@
 ﻿@inject PlayerState PlayerState
 @page "/"
-<body class="bg-gray-950 text-white font-sans scroll-smooth">
 
-  
+
+<body class="bg-gray-950 text-white font-sans scroll-smooth">
     <!-- Hero -->
-    <section class="bg-gradient-to-r from-yellow-500 to-pink-500 text-black py-24 text-center">
-        <div class="container mx-auto px-4">
-            <h2 class="text-4xl md:text-6xl font-bold mb-4">Stake. Play. Conquer. Earn.</h2>
-            <p class="text-lg md:text-xl mb-6 text-white">A Web3 Ludo Metaverse Where You Earn by Playing and Owning Cities.</p>
-            <a href="#" class="bg-black text-yellow-400 px-6 py-3 rounded-full text-lg hover:bg-gray-800 transition">Start Playing</a>
+    <section class="bg-cover bg-center bg-no-repeat text-black py-24 text-center"
+             style="background-image: url('img/home-bg.png');">
+        <div class="container mx-auto px-4 bg-black bg-opacity-10 rounded-lg py-12">
+
+            <!-- Logo -->
+            <div class="flex justify-center mb-6">
+                <img src="img/logo.png" alt="Ludo Cities Logo" class="h-48 w-auto" />
+            </div>
+
+            <!-- Headline -->
+            <h2 class="text-4xl md:text-6xl font-bold mb-4 space-x-2" style="font-family: sans-serif;">
+                <span style="color: #EB1026; -webkit-text-stroke: 2px black;">PLAY</span>
+                <span style="color: #00B15A; -webkit-text-stroke: 2px black;">WIN</span>
+                <span style="color: #FDAF00; -webkit-text-stroke: 2px black;">STAKE</span>
+                <span style="color: #00B4E1; -webkit-text-stroke: 2px black;">EARN</span>
+            </h2>
+
+            <!-- Subheading -->
+            <p class="text-lg md:text-2xl mb-6 text-white">
+                A Web3 Ludo Metaverse Where You Earn by Playing and Owning Cities.
+            </p>
+
+            <!-- Countdown Timer (Larger) -->
+            <div class="timer">
+                <div class="time-content">
+                    <div class="time days">
+                        <span class="number" style="color: #EB1026; -webkit-text-stroke: 2px black; font-size: 4rem;"></span>
+                        <br />
+                        <span class="text">days</span>
+                    </div>
+                    <div class="time hours">
+                        <span class="number" style="color: #00B15A; -webkit-text-stroke: 2px black; font-size: 4rem;"></span>
+                        <br />
+                        <span class="text">hours</span>
+                    </div>
+                    <div class="time minutes">
+                        <span class="number" style="color: #FDAF00; -webkit-text-stroke: 2px black; font-size: 4rem;"></span>
+                        <br />
+                        <span class="text">minutes</span>
+                    </div>
+                    <div class="time seconds">
+                        <span class="number" style="color: #00B4E1; -webkit-text-stroke: 2px black; font-size: 4rem;"></span>
+                        <br />
+                        <span class="text">seconds</span>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <!-- Google Play Badge (Larger) -->
+            <div class="flex justify-center">
+                <a href="https://play.google.com/store/apps/details?id=com.ludoengine.ludocities" target="_blank" rel="noopener">
+                    <img src="/img/google-play.png" alt="Get it on Google Play" class="h-20 md:h-24 hover:opacity-90 transition" />
+                </a>
+            </div>
+        </div>
+    </section>
+    <!-- ui -->
+    <section id="ui" class="pt-10 pb-0 bg-gray-900" style="background-image: url('img/header-shape-lobelia.png');">
+        <!-- narrow header container -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span style="color: whitesmoke;">Inside The World Of</span>
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">L</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">U</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">D</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">O</span>
+                    <span style="color: whitesmoke;">Cities!</span>
+                </span>
+            </h3>
+            <!-- four-color accent bar -->
+            <div class="mx-auto mb-0 h-1 w-28 rounded"
+                 style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
+            </div>
+
+        </div>
+
+        <!-- wide grid container -->
+        <div class="container mx-auto px-4 max-w-6xl text-center">
+            <div class="marquee">
+                <div class="marquee-inner">
+                    <img src="/img/188ef26d-89c6-40de-bdd3-617380f0b5a7.jpg" alt="Image 1">
+                    <img src="/img/3ac3814a-693b-4419-8ea5-e3b1f385ae2d.jpg" alt="Image 2">
+                    <img src="/img/5f0988a0-af76-43de-ac25-f484ed08f5c8.jpg" alt="Image 3">
+                    <img src="/img/6a85f7f4-e31a-40db-a106-19a2310b3534.jpg" alt="Image 4">
+                    <img src="/img/81363b9e-5bbd-4085-8b5d-1558adb7e413.jpg" alt="Image 5">
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- About (Fixed) -->
-    <section id="about" class="py-20 bg-white text-center">
-        <div class="container mx-auto px-4 max-w-3xl">
-            <h3 class="text-3xl font-bold mb-6 text-yellow-400">Why Ludo Cities?</h3>
-            <p class="text-gray-700 leading-relaxed text-lg">
-                Ludo Cities fuses nostalgic board gameplay with real economic utility. Earn tokens in PvP matches, own NFT cities, and generate passive yield from gameplay in your region. Powered by Solana, it’s built for Web3 gamers and casual players alike.
+    <!-- About -->    
+    <section id="about" class="pt-10 pb-20 bg-gray-900" style="background-image: url('img/header-bg-azure.png');">
+        <!-- narrow header container -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span style="color: whitesmoke;">What is</span>
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">L</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">U</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">D</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">O</span>
+                    <span style="color: whitesmoke;">Cities?</span>
+                </span>
+            </h3>
+            <!-- four-color accent bar -->
+            <div class="mx-auto mb-6 h-1 w-28 rounded"
+                 style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
+            </div>
+        </div>
+
+        <!-- wide grid container -->
+        <div class="container mx-auto px-4 max-w-6xl text-center">
+            <p class="text-gray-100 leading-relaxed text-lg">
+                Ludo Cities fuses nostalgic board gameplay with real economic utility.
+                <br />
+                Earn tokens in PvP matches, own NFT cities, and generate passive yield
+                from gameplay in your region.
+                <br />
+                Powered by Solana, it’s built for Web3
+                gamers and casual players alike.
             </p>
         </div>
     </section>
 
-    <!-- Features -->
-    <section id="features" class="py-20 bg-gray-900">
-        <div class="container mx-auto px-4 text-center">
-            <h3 class="text-3xl font-bold mb-10 text-yellow-400">Core Features</h3>
-            <div class="grid md:grid-cols-3 gap-8 text-left">
-                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition">
+    <!-- features -->
+    <section id="features" class="pt-10 pb-20 bg-gray-900" style="background-image: url('img/header-shape-lobelia.png');">
+        <!-- narrow header container -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">C</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">O</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">R</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">E</span>
+                    <span style="color: whitesmoke;">Features!</span>
+                </span>
+            </h3>
+            <!-- four-color accent bar -->
+            <div class="mx-auto mb-6 h-1 w-28 rounded"
+                 style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
+            </div>
+        </div>
+
+        <!-- wide grid container -->
+        <div class="container mx-auto px-4 max-w-6xl text-center">
+            <div class="grid gap-8 text-left
+                sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition h-full">
                     <h4 class="text-xl font-semibold mb-2 text-yellow-300">🎮 PvP Matches</h4>
                     <p class="text-gray-300">Stake LUDC tokens to play skill-based Ludo matches against real opponents.</p>
                 </div>
-                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition">
+                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition h-full">
                     <h4 class="text-xl font-semibold mb-2 text-blue-300">🏙 NFT Cities</h4>
                     <p class="text-gray-300">Own city NFTs and earn passive income from regional match activity.</p>
                 </div>
-                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition">
+                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition h-full">
                     <h4 class="text-xl font-semibold mb-2 text-indigo-300">🔐 Civic & Phantom</h4>
                     <p class="text-gray-300">Secure wallet and identity via Phantom and Civic for KYC and anti-cheat.</p>
                 </div>
@@ -44,81 +170,395 @@
     </section>
 
     <!-- How It Works -->
-    <section class="py-20 bg-gray-950 text-center">
-        <div class="container mx-auto px-4">
-            <h3 class="text-3xl font-bold mb-6 text-yellow-400">How It Works</h3>
-            <p class="text-gray-700 leading-relaxed text-lg">Stake → Match → Win/Lose → Earn → Upgrade/Mint NFTs → Re-stake</p>
+    <section id="how" class="pt-10 pb-20 bg-gray-900" style="background-image: url('img/header-bg-azure.png');">
+        <!-- narrow header container -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span style="color: whitesmoke;">How It</span>
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">W</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">O</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">R</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">K</span>
+                    <span style="color: whitesmoke;">s!</span>
+                </span>
+            </h3>
+            <!-- four-color accent bar -->
+            <div class="mx-auto mb-6 h-1 w-28 rounded"
+                 style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
+            </div>
+        </div>
+
+        <!-- wide grid container -->
+        <div class="container mx-auto px-4 max-w-6xl text-center">
+            <p class="text-gray-100 leading-relaxed text-lg">
+            Stake → Match → Win/Lose → Earn → Upgrade/Mint NFTs → Re-stake
             <br />
+                <br />
             <a href="#" class="text-yellow-400 underline">View Full Game Flow</a>
+            </p>
         </div>
     </section>
 
     <!-- NFTs & Tokenomics -->
-    <section id="nfts" class="py-20 bg-gray-900">
-        <div class="container mx-auto px-4">
-            <h3 class="text-3xl font-bold mb-8 text-center text-yellow-400">NFT Ownership & Tokenomics</h3>
+    <section id="nfts" class="pt-10 pb-20 bg-gray-900" style="background-image: url('img/header-shape-lobelia.png');">
+        <!-- narrow header container -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">N</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">F</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">T</span>
+                    <span style="color: whitesmoke;">Ownership</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">&</span>
+                    <span style="color: whitesmoke;">Tokenomics</span>
+                </span>
+            </h3>
+            <div class="mx-auto mb-6 h-1 w-28 rounded"
+                 style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
+            </div>
+        </div>
+
+        <!-- wide grid container -->
+        <div class="container mx-auto px-4 max-w-6xl text-left">
             <div class="grid md:grid-cols-2 gap-8">
+                <!-- Left: Pie Chart UI -->
                 <div class="bg-gray-800 p-6 rounded shadow">
                     <h4 class="text-xl font-semibold mb-2 text-blue-400">🔹 City NFTs</h4>
                     <p class="text-gray-300">Earn from regional activity. Each city glows with live match data and revenue stats.</p>
+                    <!-- Adjusted Canvas Size -->
+                    <div style="width:100%;display:flex;justify-content: center;">
+                        <canvas style="width: 100%;max-height: 200px; margin-top: 30px;" id="tokenDistributionChart"></canvas>
+                    </div>
                 </div>
+
+                <!-- Right: Custom Legend -->
                 <div class="bg-gray-800 p-6 rounded shadow">
                     <h4 class="text-xl font-semibold mb-2 text-green-400">💰 Token Distribution</h4>
+                    <br />
                     <ul class="list-disc list-inside text-gray-300">
-                        <li>35% – Play-to-Earn</li>
-                        <li>20% – Treasury</li>
-                        <li>15% – Team</li>
-                        <li>10% – IDO</li>
-                        <li>10% – Staking</li>
-                        <li>5% – Marketing</li>
-                        <li>5% – Advisors</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #4caf50;"></span> Play-to-Earn (35%)</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #2196f3;"></span> Treasury (20%)</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #ff9800;"></span> Team & Founders (15%)</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #9c27b0;"></span> Public Sale / IDO (10%)</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #00bcd4;"></span> Staking & Yield (10%)</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #ff5722;"></span> Marketing & Partners (5%)</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #607d8b;"></span> Advisors / Early Backers (5%)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- About Section -->
+    <section id="about" class="pt-10 pb-20 bg-gray-900" style="background-image: url('img/header-bg-azure.png');">
+        <!-- Header -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">A</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">B</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">O</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">U</span>
+                    <span style="color: whitesmoke;">T</span>
+                </span>
+            </h3>
+            <div class="mx-auto mb-6 h-1 w-28 rounded" style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);"></div>
+        </div>
+
+        <!-- Grid: Bio + Projects -->
+        <div class="container mx-auto px-4 max-w-6xl text-left">
+            <div class="grid md:grid-cols-2 gap-8 items-start">
+                <!-- Left: Bio Card -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <img src="img/sodi.jpg" alt="Tassaduq (CryptoSodi)" class="w-20 h-20 rounded-full border-2 border-white">
+                        <h4 class="text-2xl font-semibold" style="color:#EB1026;">Tassaduq (CryptoSodi)</h4>
+                    </div>
+                    <p class="text-gray-300 leading-relaxed">
+                        I have worked on several crypto and NFT projects including
+                        <span class="font-semibold text-white">ImageCoin</span>,
+                        <span class="font-semibold text-white">Melonheads Protocols</span>, and
+                        <a href="https://www.womenrise.art" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-400 hover:underline">WomenRise.art</a>.
+                        My expertise includes smart contracts, tokenomics, NFT marketplaces, and decentralized systems design.
+                    </p>
+                </div>
+
+                <!-- Right: Projects Highlights -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <h4 class="text-xl font-semibold mb-3" style="color:#00B15A;">Featured Projects</h4>
+                    <ul class="list-disc list-inside text-gray-300 space-y-3">
+                        <li>
+                            <strong>ImageCoin</strong> — A creative crypto token focused on support saving images on chain.
+                        </li>
+                        <li>
+                            <strong>MelonheadProtocols</strong> — A suite of DeFi mechanisms optimized for yield strategies and liquidity pooling.
+                        </li>
+                        <li>
+                            <strong><a href="https://www.womenrise.art" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">WomenRise.art</a></strong> — An NFT collection of 10,000+ unique artworks celebrating women activists, scientists, and coders worldwide.
+                        </li>
                     </ul>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Roadmap -->
-    <section id="roadmap" class="py-20 bg-gray-950 text-center">
-        <div class="container mx-auto px-4">
-            <h3 class="text-3xl font-bold mb-8 text-yellow-400">Roadmap</h3>
-            <div class="max-w-3xl mx-auto text-left text-gray-700 space-y-4">
-                <p>✅ Phase 1 – MVP (Live Android Game)</p>
-                <p>🚀 Phase 2 – Website & Wallet (Current)</p>
-                <p>📈 Phase 3 – Public Token Launch</p>
-                <p>🏙 Phase 4 – NFT Minting & Marketplace</p>
-                <p>🧠 Phase 5 – DAO + Second Game (Snake & Ladder)</p>
+    <!-- How It Works -->
+    <section id="roadmap" class="pt-10 pb-20 bg-gray-900" style="background-image: url('img/header-shape-lobelia.png');">
+        <!-- narrow header container -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">                
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">R</span>
+                    <span style="color: whitesmoke;">O</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">A</span>
+                    <span style="color: whitesmoke;">D</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">M</span>
+                    <span style="color: whitesmoke;">A</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">P</span>
+                    <span style="color: whitesmoke;">!</span>
+                    
+                </span>
+            </h3>
+            <!-- four-color accent bar -->
+            <div class="mx-auto mb-6 h-1 w-28 rounded"
+                 style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
+            </div>
+        </div>
+        <!-- Zig-Zag Timeline -->
+        <div class="relative max-w-6xl mx-auto">
+            <!-- Center line -->
+            <div class="absolute left-1/2 top-0 w-1 bg-gray-700 h-full transform -translate-x-1/2"></div>
+
+            <div class="-space-y-6 ">
+                <!-- Phase 1 -->
+                <div class="flex items-center w-full">
+                    <div class="w-1/2 pr-8 text-right flex justify-end">
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-lg max-w-sm">
+                            <h4 class="text-lg font-bold text-green-400">Phase 1 – MVP (Completed)</h4>
+                            <p class="text-sm text-gray-300">✅ Completed: Done.</p>
+                            <p class="text-gray-200">Live on Play Store, working Android version + Admin panel.</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="w-6 h-6 bg-green-500 rounded-full border-4 border-gray-900"></div>
+                    </div>
+                    <div class="w-1/2"></div>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="flex items-center w-full">
+                    <div class="w-1/2"></div>
+                    <div class="relative">
+                        <div class="w-6 h-6 bg-blue-500 rounded-full border-4 border-gray-900"></div>
+                    </div>
+                    <div class="w-1/2 pl-8 flex justify-start">
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-lg max-w-sm">
+                            <h4 class="text-lg font-bold text-blue-400">Phase 2 – Website & Web Wallet</h4>
+                            <p class="text-sm text-gray-300">✅ Completed: Done.</p>
+                            <p class="text-gray-200">Launch official site with admin backend, wallet onboarding.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="flex items-center w-full">
+                    <div class="w-1/2 pr-8 text-right flex justify-end">
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-lg max-w-sm">
+                            <h4 class="text-lg font-bold text-yellow-400">Phase 3 – Token Launch</h4>
+                            <p class="text-sm text-gray-300">Duration: 1–2 months</p>
+                            <p class="text-gray-200">IDO or public token launch, staking, liquidity.</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="w-6 h-6 bg-yellow-500 rounded-full border-4 border-gray-900"></div>
+                    </div>
+                    <div class="w-1/2"></div>
+                </div>
+
+                <!-- Phase 4 -->
+                <div class="flex items-center w-full">
+                    <div class="w-1/2"></div>
+                    <div class="relative">
+                        <div class="w-6 h-6 bg-pink-500 rounded-full border-4 border-gray-900"></div>
+                    </div>
+                    <div class="w-1/2 pl-8 flex justify-start">
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-lg max-w-sm">
+                            <h4 class="text-lg font-bold text-pink-400">Phase 4 – NFT Sale & Marketplace</h4>
+                            <p class="text-sm text-gray-300">Duration: 2–4 months</p>
+                            <p class="text-gray-200">NFT minting for cities/districts, marketplace, rankings.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 5 -->
+                <div class="flex items-center w-full">
+                    <div class="w-1/2 pr-8 text-right flex justify-end">
+                        <div class="bg-gray-800 p-4 rounded-lg shadow-lg max-w-sm">
+                            <h4 class="text-lg font-bold text-purple-400">Phase 5 – Expansion & Governance</h4>
+                            <p class="text-sm text-gray-300">Duration: 4+ months</p>
+                            <p class="text-gray-200">Guilds, governance voting (DAO), partnerships, 2nd game Snake & Ladder.</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="w-6 h-6 bg-purple-500 rounded-full border-4 border-gray-900"></div>
+                    </div>
+                    <div class="w-1/2"></div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Community -->
-    <section id="community" class="py-20 bg-gray-900 text-center">
-        <div class="container mx-auto px-4">
-            <h3 class="text-3xl font-bold mb-6 text-yellow-400">Join the Community</h3>
-            <p class="text-gray-300 mb-6">Connect with other players, compete in tournaments, and rise to the top of the leaderboard.</p>
-            <div class="flex justify-center space-x-4">
-                <a href="#" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300 transition">Join Discord</a>
-                <a href="#" class="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-300 transition">Follow on Twitter</a>
+    <section id="community" class="pt-10 pb-10 bg-gray-900" style="background-image: url('img/header-bg-azure.png');">
+        <!-- narrow header container -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">J</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">O</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">I</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">N</span>
+                    <span style="color: whitesmoke;">The Community!</span>
+                </span>
+            </h3>
+            <!-- four-color accent bar -->
+            <div class="mx-auto mb-6 h-1 w-28 rounded"
+                 style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
+            </div>
+        </div>
+
+        <!-- wide grid container -->
+        <div class="container mx-auto px-4 max-w-6xl text-center">
+            <div style="display: flex; text-align: center; justify-content: center;">
+                <a href="https://x.com/cryptosodi" class="text-white p-4 hover:text-yellow-300 transition flex items-center justify-center">
+                    <i class="fab fa-twitter text-2xl"></i>
+                </a>
+                <a href="https://github.com/CryptoSodi/ColabLudo/" class="text-white p-4 hover:text-yellow-300 transition flex items-center justify-center">
+                    <i class="fab fa-github text-2xl"></i>
+                </a>
             </div>
         </div>
     </section>
-
+    
+    
     <!-- Footer -->
-    <footer class="bg-gray-950 text-gray-500 py-6 text-center text-sm">
-        <p>&copy; 2025 Ludo Cities. All rights reserved.</p>
-        <p>
-            <a href="#" class="hover:text-white">Terms</a> •
-            <a href="#" class="hover:text-white">Privacy</a> •
-            <a href="#" class="hover:text-white">Support</a>
+    <footer class="bg-gray-950 text-gray-900 py-6 text-center text-sm bg-gray-900" style="background-image: url('img/header-bg-azure.png');">
+        <p class="hover:text-white text-white">&copy; 2025 Ludo Cities. All rights reserved.</p>
+        <p class="hover:text-white text-white">
+            <a href="#" >Terms</a> •
+            <a href="#" >Privacy</a> •
+            <a href="#" >Support</a>
         </p>
     </footer>
+    <script>
+        const marquee = document.querySelector(".marquee-inner");
+        const speed = 1;
+        let scrollAmount = 0;
+        let isHovered = false;
 
+        // Duplicate content for infinite scroll
+        const marqueeContent = marquee.innerHTML;
+        marquee.innerHTML += marqueeContent;
+
+        // Stop scrolling only when hovering on an <img>
+        marquee.querySelectorAll("img").forEach(img => {
+            img.addEventListener("mouseover", () => isHovered = true);
+            img.addEventListener("mouseout", () => isHovered = false);
+        });
+
+        // Scrolling function
+        function startScrolling() {
+            if (!isHovered) {
+                scrollAmount -= speed;
+                if (Math.abs(scrollAmount) >= marquee.scrollWidth / 2) {
+                    scrollAmount = 0;
+                }
+                marquee.style.transform = `translateX(${scrollAmount}px)`;
+            }
+            requestAnimationFrame(startScrolling);
+        }
+        startScrolling();
+
+    const seconds = document.querySelector(".seconds .number"),
+          minutes = document.querySelector(".minutes .number"),
+          hours = document.querySelector(".hours .number"),
+          days = document.querySelector(".days .number");
+
+      let secValue = 11,
+          minValue = 2,
+          hourValue = 2,
+          dayValue = 9;
+
+        const timeFunction = setInterval(() => {
+          secValue--;
+
+          if (secValue === 0) {
+            minValue--;
+            secValue = 60;
+          }
+          if (minValue === 0) {
+            hourValue--;
+            minValue = 60;
+          }
+          if (hourValue === 0) {
+            dayValue--;
+            hourValue = 24;
+          }
+
+          if (dayValue === 0) {
+            clearInterval(timeFunction);
+          }
+          seconds.textContent = secValue < 10 ? `0${secValue}` : secValue;
+          minutes.textContent = minValue < 10 ? `0${minValue}` : minValue;
+          hours.textContent = hourValue < 10 ? `0${hourValue}` : hourValue;
+          days.textContent = dayValue < 10 ? `0${dayValue}` : dayValue;
+        }, 1000); //1000ms = 1s
+
+
+    </script>
+    <script>
+                    var ctx = document.getElementById('tokenDistributionChart').getContext('2d');
+        var tokenDistributionChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: [
+                    'Play-to-Earn (35%)',
+                    'Treasury (20%)',
+                    'Team & Founders (15%)',
+                    'Public Sale / IDO (10%)',
+                    'Staking & Yield (10%)',
+                    'Marketing & Partners (5%)',
+                    'Advisors / Early Backers (5%)'
+                ],
+                datasets: [{
+                    data: [35, 20, 15, 10, 10, 5, 5],
+                    backgroundColor: [
+                        '#4caf50', // Green
+                        '#2196f3', // Blue
+                        '#ff9800', // Orange
+                        '#9c27b0', // Purple
+                        '#00bcd4', // Cyan
+                        '#ff5722', // Deep Orange
+                        '#607d8b'  // Blue Gray
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false  // Disable the default legend
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    </script>
 </body>
-
-
-@if (PlayerState.Player != null)
-{
-    <p>Welcome, @PlayerState.Player.Name!</p>
-}
-<h1>Hello, world!</h1>
