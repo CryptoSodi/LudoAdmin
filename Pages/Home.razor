@@ -1,4 +1,5 @@
 ﻿@inject PlayerState PlayerState
+@inject IJSRuntime JS
 @page "/"
 
 
@@ -6,7 +7,7 @@
     <!-- Hero -->
     <section class="bg-cover bg-center bg-no-repeat text-black py-24 text-center"
              style="background-image: url('img/home-bg.png');">
-        <div class="container mx-auto px-4 bg-black bg-opacity-10 rounded-lg py-12">
+        <div class="container mx-auto px-4 bg-black bg-opacity-50 rounded-lg py-12">
 
             <!-- Logo -->
             <div class="flex justify-center mb-6">
@@ -94,10 +95,9 @@
             </div>
         </div>
     </section>
-
-    <!-- About -->    
-    <section id="about" class="pt-10 pb-20 bg-gray-900" style="background-image: url('img/header-bg-azure.png');">
-        <!-- narrow header container -->
+    <!-- About -->
+    <section id="what" class="pt-20 pb-20 bg-gray-900" style="background-image: url('img/header-bg-azure.png');">
+        <!-- Header -->
         <div class="container mx-auto px-4 max-w-3xl text-center">
             <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
                 <span style="color: whitesmoke;">What is</span>
@@ -106,25 +106,21 @@
                     <span style="-webkit-text-stroke:1px black; color:#00B15A;">U</span>
                     <span style="-webkit-text-stroke:1px black; color:#FDAF00;">D</span>
                     <span style="-webkit-text-stroke:1px black; color:#00B4E1;">O</span>
-                    <span style="color: whitesmoke;">Cities?</span>
+                    <span style="color: whitesmoke;"> Cities?</span>
                 </span>
             </h3>
-            <!-- four-color accent bar -->
-            <div class="mx-auto mb-6 h-1 w-28 rounded"
-                 style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
-            </div>
+            <div class="mx-auto mb-6 h-1 w-28 rounded" style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);"></div>
         </div>
 
-        <!-- wide grid container -->
-        <div class="container mx-auto px-4 max-w-6xl text-center">
+        <!-- Content -->
+        <div class="container mx-auto px-4 max-w-5xl text-center">
             <p class="text-gray-100 leading-relaxed text-lg">
-                Ludo Cities fuses nostalgic board gameplay with real economic utility.
-                <br />
-                Earn tokens in PvP matches, own NFT cities, and generate passive yield
-                from gameplay in your region.
-                <br />
-                Powered by Solana, it’s built for Web3
-                gamers and casual players alike.
+                <span class="font-semibold text-white">Ludo Cities</span> is a Web3-powered evolution of the classic Ludo game, blending nostalgic gameplay with blockchain-driven ownership and rewards.
+                Players can stake <span class="text-yellow-400 font-semibold">LUDC tokens</span> to join competitive matches, earn from victories, and unlock NFT-based city ownership for <span class="text-green-400 font-semibold">passive income</span>.
+                <br /><br />
+                Each NFT city acts as a dynamic hub in our in-game economy — glowing in real-time to show local matches, revenue, and rankings. Built on the <span class="text-blue-400 font-semibold">Solana blockchain</span>, Ludo Cities offers low fees, fast gameplay, and true asset ownership.
+                <br /><br />
+                Whether you’re a casual player or a Web3 investor, Ludo Cities lets you play, own, and profit.
             </p>
         </div>
     </section>
@@ -134,7 +130,6 @@
         <!-- narrow header container -->
         <div class="container mx-auto px-4 max-w-3xl text-center">
             <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
-                
                 <span class="whitespace-nowrap">
                     <span style="-webkit-text-stroke:1px black; color:#EB1026;">C</span>
                     <span style="-webkit-text-stroke:1px black; color:#00B15A;">O</span>
@@ -151,27 +146,63 @@
 
         <!-- wide grid container -->
         <div class="container mx-auto px-4 max-w-6xl text-center">
-            <div class="grid gap-8 text-left
-                sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-8 text-left sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+
+                <!-- PvP Matches -->
                 <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition h-full">
-                    <h4 class="text-xl font-semibold mb-2 text-yellow-300">🎮 PvP Matches</h4>
-                    <p class="text-gray-300">Stake LUDC tokens to play skill-based Ludo matches against real opponents.</p>
+                    <h4 class="text-xl font-semibold mb-2 text-yellow-300">🎮 Stake-to-Play PvP</h4>
+                    <p class="text-gray-300">
+                        Challenge real opponents in skill-based Ludo matches. Stake <strong>LUDC tokens</strong> to enter, win rewards, and climb leaderboards. Multiple modes including 1v1, 2v2, and private rooms.
+                    </p>
                 </div>
+
+                <!-- NFT Cities -->
                 <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition h-full">
-                    <h4 class="text-xl font-semibold mb-2 text-blue-300">🏙 NFT Cities</h4>
-                    <p class="text-gray-300">Own city NFTs and earn passive income from regional match activity.</p>
+                    <h4 class="text-xl font-semibold mb-2 text-blue-300">🏙 NFT Cities & Districts</h4>
+                    <p class="text-gray-300">
+                        Own unique <strong>City NFTs</strong> tied to real gameplay regions. Earn passive income from match activity, view public region stats, and upgrade cities for higher yield.
+                    </p>
                 </div>
+
+                <!-- Secure Wallet -->
                 <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition h-full">
-                    <h4 class="text-xl font-semibold mb-2 text-indigo-300">🔐 Civic & Phantom</h4>
-                    <p class="text-gray-300">Secure wallet and identity via Phantom and Civic for KYC and anti-cheat.</p>
+                    <h4 class="text-xl font-semibold mb-2 text-indigo-300">🔐 Phantom & Civic Security</h4>
+                    <p class="text-gray-300">
+                        Seamless Web3 onboarding via <strong>Phantom Wallet</strong> with Google login for non-crypto users. Civic Protocol ensures KYC/AML compliance and anti-bot protection.
+                    </p>
                 </div>
+
+                <!-- Tournaments -->
+                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition h-full">
+                    <h4 class="text-xl font-semibold mb-2 text-green-300">🏆 Regional Tournaments</h4>
+                    <p class="text-gray-300">
+                        Daily, weekly, and yearly tournaments with pooled rewards. Lose a match? Re-enter by paying the fee to fight for the top spot and maximize your LUDC earnings.
+                    </p>
+                </div>
+
+                <!-- Tokenomics -->
+                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition h-full">
+                    <h4 class="text-xl font-semibold mb-2 text-red-300">💰 Balanced Tokenomics</h4>
+                    <p class="text-gray-300">
+                        1B total LUDC supply with <strong>burn mechanics</strong>, treasury reserves, and staking rewards. Multiple utilities ensure long-term value for players and investors.
+                    </p>
+                </div>
+
+                <!-- Cross-Platform -->
+                <div class="bg-gray-800 p-6 rounded shadow hover:shadow-xl transition h-full">
+                    <h4 class="text-xl font-semibold mb-2 text-purple-300">📱 Cross-Platform Play</h4>
+                    <p class="text-gray-300">
+                        Built with .NET MAUI & Blazor, playable on Android, Web, and future Solana Dapp Store devices — keeping you connected wherever you play.
+                    </p>
+                </div>
+
             </div>
         </div>
     </section>
 
     <!-- How It Works -->
     <section id="how" class="pt-10 pb-20 bg-gray-900" style="background-image: url('img/header-bg-azure.png');">
-        <!-- narrow header container -->
+        <!-- Header -->
         <div class="container mx-auto px-4 max-w-3xl text-center">
             <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
                 <span style="color: whitesmoke;">How It</span>
@@ -183,25 +214,58 @@
                     <span style="color: whitesmoke;">s!</span>
                 </span>
             </h3>
-            <!-- four-color accent bar -->
             <div class="mx-auto mb-6 h-1 w-28 rounded"
                  style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
             </div>
         </div>
 
-        <!-- wide grid container -->
-        <div class="container mx-auto px-4 max-w-6xl text-center">
-            <p class="text-gray-100 leading-relaxed text-lg">
-            Stake → Match → Win/Lose → Earn → Upgrade/Mint NFTs → Re-stake
-            <br />
-                <br />
-            <a href="#" class="text-yellow-400 underline">View Full Game Flow</a>
-            </p>
+        <!-- Process Steps -->
+        <div class="container mx-auto px-4 max-w-5xl text-center">
+            <div class="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+                <!-- Step 1 -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow hover:shadow-xl transition">
+                    <div class="text-3xl mb-2">💰</div>
+                    <h4 class="text-lg font-semibold text-yellow-300">Stake</h4>
+                    <p class="text-gray-300 text-sm">Stake LUDC tokens to enter matches or tournaments.</p>
+                </div>
+                <!-- Step 2 -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow hover:shadow-xl transition">
+                    <div class="text-3xl mb-2">🎲</div>
+                    <h4 class="text-lg font-semibold text-blue-300">Match</h4>
+                    <p class="text-gray-300 text-sm">Get matched with players based on skill and stake size.</p>
+                </div>
+                <!-- Step 3 -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow hover:shadow-xl transition">
+                    <div class="text-3xl mb-2">🏆</div>
+                    <h4 class="text-lg font-semibold text-green-300">Win / Lose</h4>
+                    <p class="text-gray-300 text-sm">Compete to win the prize pool or try again for redemption.</p>
+                </div>
+                <!-- Step 4 -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow hover:shadow-xl transition">
+                    <div class="text-3xl mb-2">💎</div>
+                    <h4 class="text-lg font-semibold text-red-300">Earn</h4>
+                    <p class="text-gray-300 text-sm">Claim LUDC rewards and build your in-game balance.</p>
+                </div>
+                <!-- Step 5 -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow hover:shadow-xl transition">
+                    <div class="text-3xl mb-2">🏙</div>
+                    <h4 class="text-lg font-semibold text-purple-300">Upgrade / Mint NFTs</h4>
+                    <p class="text-gray-300 text-sm">Use earnings to mint or upgrade NFT cities for passive yield.</p>
+                </div>
+                <!-- Step 6 -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow hover:shadow-xl transition">
+                    <div class="text-3xl mb-2">♻️</div>
+                    <h4 class="text-lg font-semibold text-pink-300">Re-Stake</h4>
+                    <p class="text-gray-300 text-sm">Put your rewards back into play for bigger wins.</p>
+                </div>
+            </div>
+
         </div>
     </section>
 
+
     <!-- NFTs & Tokenomics -->
-    <section id="nfts" class="pt-10 pb-20 bg-gray-900" style="background-image: url('img/header-shape-lobelia.png');">
+    <section id="Tokenomics" class="pt-10 pb-20 bg-gray-900" style="background-image: url('img/header-shape-lobelia.png');">
         <!-- narrow header container -->
         <div class="container mx-auto px-4 max-w-3xl text-center">
             <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
@@ -225,7 +289,10 @@
                 <!-- Left: Pie Chart UI -->
                 <div class="bg-gray-800 p-6 rounded shadow">
                     <h4 class="text-xl font-semibold mb-2 text-blue-400">🔹 City NFTs</h4>
-                    <p class="text-gray-300">Earn from regional activity. Each city glows with live match data and revenue stats.</p>
+                    <p class="text-gray-300">Own and manage NFT cities in <span class="text-white font-semibold">Ludo Cities</span>.<br />
+                        Each city generates <span class="text-green-400 font-semibold">passive income</span> from local match activity.<br />
+                        Cities feature <span class="text-yellow-400 font-semibold">live glow indicators</span> showing match counts, earnings, and ranking in real time.
+                    </p>
                     <!-- Adjusted Canvas Size -->
                     <div style="width:100%;display:flex;justify-content: center;">
                         <canvas style="width: 100%;max-height: 200px; margin-top: 30px;" id="tokenDistributionChart"></canvas>
@@ -234,16 +301,16 @@
 
                 <!-- Right: Custom Legend -->
                 <div class="bg-gray-800 p-6 rounded shadow">
-                    <h4 class="text-xl font-semibold mb-2 text-green-400">💰 Token Distribution</h4>
+                    <h4 class="text-xl font-semibold mb-2 text-green-400">🔹 Token Distribution</h4>
                     <br />
                     <ul class="list-disc list-inside text-gray-300">
-                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #4caf50;"></span> Play-to-Earn (35%)</li>
-                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #2196f3;"></span> Treasury (20%)</li>
-                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #ff9800;"></span> Team & Founders (15%)</li>
-                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #9c27b0;"></span> Public Sale / IDO (10%)</li>
-                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #00bcd4;"></span> Staking & Yield (10%)</li>
-                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #ff5722;"></span> Marketing & Partners (5%)</li>
-                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #607d8b;"></span> Advisors / Early Backers (5%)</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #4caf50;"></span> <strong>Play-to-Earn:</strong> 35% — Match rewards and tournaments.</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #2196f3;"></span> <strong>Treasury:</strong> 20% — Long-term sustainability and reserves.</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #ff9800;"></span> <strong>Team & Founders:</strong> 15% — Development and operations.</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #9c27b0;"></span> <strong>Public Sale / IDO:</strong> 10% — Initial launch and liquidity.</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #00bcd4;"></span> <strong>Staking & Yield:</strong> 10% — Token staking rewards.</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #ff5722;"></span> <strong>Marketing & Partners:</strong> 5% — Promotion and partnerships.</li>
+                        <li class="mb-2"><span class="inline-block w-4 h-4 rounded-full" style="background-color: #607d8b;"></span> <strong>Advisors / Early Backers:</strong> 5% — Strategic guidance.</li>
                     </ul>
                 </div>
             </div>
@@ -265,39 +332,37 @@
             <div class="mx-auto mb-6 h-1 w-28 rounded" style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);"></div>
         </div>
 
-        <!-- Grid: Bio + Projects -->
-        <div class="container mx-auto px-4 max-w-6xl text-left">
-            <div class="grid md:grid-cols-2 gap-8 items-start">
-                <!-- Left: Bio Card -->
-                <div class="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-                    <div class="flex items-center space-x-4 mb-4">
-                        <img src="img/sodi.jpg" alt="Tassaduq (CryptoSodi)" class="w-20 h-20 rounded-full border-2 border-white">
-                        <h4 class="text-2xl font-semibold" style="color:#EB1026;">Tassaduq (CryptoSodi)</h4>
-                    </div>
-                    <p class="text-gray-300 leading-relaxed">
-                        I have worked on several crypto and NFT projects including
-                        <span class="font-semibold text-white">ImageCoin</span>,
-                        <span class="font-semibold text-white">Melonheads Protocols</span>, and
-                        <a href="https://www.womenrise.art" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-400 hover:underline">WomenRise.art</a>.
-                        My expertise includes smart contracts, tokenomics, NFT marketplaces, and decentralized systems design.
-                    </p>
+        <!-- Grid Container for Equal Height Cards -->
+        <div class="container mx-auto px-4 max-w-6xl grid md:grid-cols-2 gap-8 items-stretch">
+            <!-- Left Card -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow flex flex-col justify-between">
+                <div class="flex items-center space-x-4 mb-4">
+                    <img src="img/sodi.jpg" alt="Tassaduq (CryptoSodi)" class="w-20 h-20 border-2 border-white">
+                    <h4 class="text-2xl font-semibold" style="color:#EB1026;">Tassaduq (CryptoSodi)</h4>
                 </div>
+                <p class="text-gray-300 leading-relaxed">
+                    I have worked on several crypto and NFT projects including
+                    <span class="font-semibold text-white">ImageCoin</span>,
+                    <span class="font-semibold text-white">Melonheads Protocols</span>, and
+                    <a href="https://www.womenrise.art" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-400 hover:underline">WomenRise.art</a>.
+                    My expertise includes smart contracts, tokenomics, NFT marketplaces, and decentralized systems design.
+                </p>
+            </div>
 
-                <!-- Right: Projects Highlights -->
-                <div class="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-                    <h4 class="text-xl font-semibold mb-3" style="color:#00B15A;">Featured Projects</h4>
-                    <ul class="list-disc list-inside text-gray-300 space-y-3">
-                        <li>
-                            <strong>ImageCoin</strong> — A creative crypto token focused on support saving images on chain.
-                        </li>
-                        <li>
-                            <strong>MelonheadProtocols</strong> — A suite of DeFi mechanisms optimized for yield strategies and liquidity pooling.
-                        </li>
-                        <li>
-                            <strong><a href="https://www.womenrise.art" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">WomenRise.art</a></strong> — An NFT collection of 10,000+ unique artworks celebrating women activists, scientists, and coders worldwide.
-                        </li>
-                    </ul>
-                </div>
+            <!-- Right Card -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow flex flex-col justify-between">
+                <h4 class="text-xl font-semibold mb-3" style="color:#00B15A;">Past Projects</h4>
+                <ul class="list-disc list-inside text-gray-300 space-y-3">
+                    <li>
+                        <strong>ImageCoin</strong> — A creative crypto token focused on support saving images on chain.
+                    </li>
+                    <li>
+                        <strong>MelonheadProtocols</strong> — A suite of DeFi mechanisms optimized for yield strategies and liquidity pooling.
+                    </li>
+                    <li>
+                        <strong><a href="https://www.womenrise.art" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">WomenRise.art</a></strong> — An NFT collection of 10,000+ unique artworks celebrating women activists, scientists, and coders worldwide.
+                    </li>
+                </ul>
             </div>
         </div>
     </section>
@@ -439,8 +504,6 @@
             </div>
         </div>
     </section>
-    
-    
     <!-- Footer -->
     <footer class="bg-gray-950 text-gray-900 py-6 text-center text-sm bg-gray-900" style="background-image: url('img/header-bg-azure.png');">
         <p class="hover:text-white text-white">&copy; 2025 Ludo Cities. All rights reserved.</p>
@@ -450,115 +513,109 @@
             <a href="#" >Support</a>
         </p>
     </footer>
+
     <script>
-        const marquee = document.querySelector(".marquee-inner");
-        const speed = 1;
-        let scrollAmount = 0;
-        let isHovered = false;
+          window.initHomePageScripts = () => {
+            function startCountdown() {
+                const seconds = document.querySelector(".seconds .number"),
+                      minutes = document.querySelector(".minutes .number"),
+                      hours   = document.querySelector(".hours .number"),
+                      days    = document.querySelector(".days .number");
 
-        // Duplicate content for infinite scroll
-        const marqueeContent = marquee.innerHTML;
-        marquee.innerHTML += marqueeContent;
+                const targetDate = new Date("2025-08-20T00:26:48+05:00");
 
-        // Stop scrolling only when hovering on an <img>
-        marquee.querySelectorAll("img").forEach(img => {
-            img.addEventListener("mouseover", () => isHovered = true);
-            img.addEventListener("mouseout", () => isHovered = false);
-        });
+                setInterval(() => {
+                    const now = new Date().getTime();
+                    const distance = targetDate.getTime() - now;
 
-        // Scrolling function
-        function startScrolling() {
-            if (!isHovered) {
-                scrollAmount -= speed;
-                if (Math.abs(scrollAmount) >= marquee.scrollWidth / 2) {
-                    scrollAmount = 0;
-                }
-                marquee.style.transform = `translateX(${scrollAmount}px)`;
+                    if (distance <= 0) {
+                        days.textContent = hours.textContent =
+                        minutes.textContent = seconds.textContent = "00";
+                        return;
+                    }
+
+                    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    days.textContent = d < 10 ? `0${d}` : d;
+                    hours.textContent = h < 10 ? `0${h}` : h;
+                    minutes.textContent = m < 10 ? `0${m}` : m;
+                    seconds.textContent = s < 10 ? `0${s}` : s;
+                }, 1000);
             }
-            requestAnimationFrame(startScrolling);
-        }
-        startScrolling();
 
-    const seconds = document.querySelector(".seconds .number"),
-          minutes = document.querySelector(".minutes .number"),
-          hours = document.querySelector(".hours .number"),
-          days = document.querySelector(".days .number");
+            startCountdown();
 
-      let secValue = 11,
-          minValue = 2,
-          hourValue = 2,
-          dayValue = 9;
+            const marquee = document.querySelector(".marquee-inner");
+            const speed = 1;
+            let scrollAmount = 0;
+            let isHovered = false;
 
-        const timeFunction = setInterval(() => {
-          secValue--;
+            const marqueeContent = marquee.innerHTML;
+            marquee.innerHTML += marqueeContent;
 
-          if (secValue === 0) {
-            minValue--;
-            secValue = 60;
-          }
-          if (minValue === 0) {
-            hourValue--;
-            minValue = 60;
-          }
-          if (hourValue === 0) {
-            dayValue--;
-            hourValue = 24;
-          }
+            marquee.querySelectorAll("img").forEach(img => {
+                img.addEventListener("mouseover", () => isHovered = true);
+                img.addEventListener("mouseout", () => isHovered = false);
+            });
 
-          if (dayValue === 0) {
-            clearInterval(timeFunction);
-          }
-          seconds.textContent = secValue < 10 ? `0${secValue}` : secValue;
-          minutes.textContent = minValue < 10 ? `0${minValue}` : minValue;
-          hours.textContent = hourValue < 10 ? `0${hourValue}` : hourValue;
-          days.textContent = dayValue < 10 ? `0${dayValue}` : dayValue;
-        }, 1000); //1000ms = 1s
+            function startScrolling() {
+                if (!isHovered) {
+                    scrollAmount -= speed;
+                    if (Math.abs(scrollAmount) >= marquee.scrollWidth / 2) {
+                        scrollAmount = 0;
+                    }
+                    marquee.style.transform = `translateX(${scrollAmount}px)`;
+                }
+                requestAnimationFrame(startScrolling);
+            }
+            startScrolling();
 
-
-    </script>
-    <script>
-                    var ctx = document.getElementById('tokenDistributionChart').getContext('2d');
-        var tokenDistributionChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: [
-                    'Play-to-Earn (35%)',
-                    'Treasury (20%)',
-                    'Team & Founders (15%)',
-                    'Public Sale / IDO (10%)',
-                    'Staking & Yield (10%)',
-                    'Marketing & Partners (5%)',
-                    'Advisors / Early Backers (5%)'
-                ],
-                datasets: [{
-                    data: [35, 20, 15, 10, 10, 5, 5],
-                    backgroundColor: [
-                        '#4caf50', // Green
-                        '#2196f3', // Blue
-                        '#ff9800', // Orange
-                        '#9c27b0', // Purple
-                        '#00bcd4', // Cyan
-                        '#ff5722', // Deep Orange
-                        '#607d8b'  // Blue Gray
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false  // Disable the default legend
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(tooltipItem) {
-                                return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+            var ctx = document.getElementById('tokenDistributionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: [
+                        'Play-to-Earn (35%)',
+                        'Treasury (20%)',
+                        'Team & Founders (15%)',
+                        'Public Sale / IDO (10%)',
+                        'Staking & Yield (10%)',
+                        'Marketing & Partners (5%)',
+                        'Advisors / Early Backers (5%)'
+                    ],
+                    datasets: [{
+                        data: [35, 20, 15, 10, 10, 5, 5],
+                        backgroundColor: [
+                            '#4caf50', '#2196f3', '#ff9800', '#9c27b0',
+                            '#00bcd4', '#ff5722', '#607d8b'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: tooltipItem => `${tooltipItem.label}: ${tooltipItem.raw}%`
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        };
 
     </script>
 </body>
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initHomePageScripts");
+        }
+    }
+}

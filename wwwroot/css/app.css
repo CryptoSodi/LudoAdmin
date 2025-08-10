@@ -436,7 +436,9 @@ button:hover img {
     font-style: italic;
 }
 
-
+[id] {
+    scroll-margin-top: 4.5rem;
+}
 
 @media screen and (max-width: 480px) {
     .timer header {

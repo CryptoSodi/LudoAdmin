@@ -44,7 +44,8 @@
     }
 
     // Replace these with your actual values from Google Developer Console
-    private string clientId = "973406093603-dlm3o6jrkuf6b1m1lc7m8hir9qc4cul5.apps.googleusercontent.com";
+
+    private string clientId = GlobalConstants.Debug ? "973406093603-dlm3o6jrkuf6b1m1lc7m8hir9qc4cul5.apps.googleusercontent.com" : "973406093603-t7b4fbs99ouvg6u4hud80s3b64eek5qt.apps.googleusercontent.com";
     private string redirectUri => Navigation.BaseUri + "auth-callback"; // We will create this page next
 
     private async Task LoginWithGoogle()
