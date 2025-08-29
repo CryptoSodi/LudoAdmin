@@ -1,42 +1,66 @@
 ﻿@page "/auth-callback"
-@inject NavigationManager Navigation
-@inject HttpClient Http
-@inject LudoAdmin.Service.HubService Hub
 @inject IJSRuntime JS
-@if (showError)
+@inject LudoAdmin.Service.AuthService Auth
+@inject LudoAdmin.Service.HubService Hub
+@inject NavigationManager Nav
+@inject PlayerState PlayerState
+
+@if (_error is not null)
 {
-    <p style="color:red;">Login failed. Please try again.</p>
+    <div style="color:red;white-space:pre-wrap">@_error</div>
 }
 else
 {
-    <h3>Signing in...</h3>
+    <p>Signing you in…</p>
 }
 
 @code {
-    private bool showError = false;
+    private string? _error;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender) return;
+
+        var clientId = GlobalConstants.Debug
+            ? "205c334a-404e-4f88-a999-a80b0b8e0504"
+            : "205c334a-404e-4f88-a999-a80b0b8e0504"; // replace if prod differs
+
+        var redirectUri = Nav.BaseUri + "auth-callback";
+
+        try
         {
-            var tokenFound = await JS.InvokeAsync<bool>("eval", @"
-                (function() {
-                    const hash = window.location.hash.substring(1);
-                    const params = new URLSearchParams(hash);
-                    const id_token = params.get('id_token'); // <--- CHANGE HERE
-                    if (id_token && window.opener) {
-                        window.opener.postMessage({ type: 'GoogleAuthToken', token: id_token }, window.origin);
-                        window.close();
-                        return true;
-                    } else {
-                        return false;
-                    }
-                })();
-            ");
-            if (!tokenFound)
-            {
-                showError = true;
-                StateHasChanged();
-            }
+            // 1) Exchange code -> tokens with Civic (via our JS helper)
+            var result = await JS.InvokeAsync<CivicResult>("civicAuth.complete", clientId, redirectUri);
+            if (result is null || string.IsNullOrWhiteSpace(result.idToken))
+                throw new Exception("No id_token returned from Civic.");
+
+            // Optional debug (safe): send strings only
+            await JS.InvokeVoidAsync("console.log", "Civic claims (name/email):",
+                result.claims?.GetValueOrDefault("name")?.ToString() ?? "(none)",
+                result.claims?.GetValueOrDefault("email")?.ToString() ?? "(none)");
+
+            // 2) Your existing backend login with the CIVIC id_token
+            var player = await Hub.SendUserLoggedInEvent(result.idToken);
+            if (player is null)
+                throw new Exception("Backend login failed. (Check server token validation: issuer/audience.)");
+
+            await Auth.SetPlayerInfoAsync(player);
+            PlayerState.SetPlayer(player);
+
+            Nav.NavigateTo("/", forceLoad: true);
         }
+        catch (Exception ex)
+        {
+            _error = "Auth callback error:\n" + ex.ToString();
+            Console.Error.WriteLine(_error);                // <- log on .NET side
+            await JS.InvokeVoidAsync("console.error", _error); // <- pass STRING, not Exception
+            StateHasChanged();
+        }
+    }
+
+    private sealed class CivicResult
+    {
+        public string? idToken { get; set; }
+        public Dictionary<string, object>? claims { get; set; }
     }
 }
