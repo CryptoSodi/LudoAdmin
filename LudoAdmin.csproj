@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\LudoClient\LudoClient\Models\Game.cs" Link="Shared\Game.cs" />
-    <Compile Include="..\LudoClient\SharedCode\Constants\PlayerInfo.cs" Link="Constants\PlayerInfo.cs" />
-    <Compile Include="..\LudoClient\SharedCode\SharedClasses.cs" Link="SharedClasses.cs" />
+    <Compile Include="..\ColabLudo\LudoClient\Models\Game.cs" Link="Shared\Game.cs" />
+    <Compile Include="..\ColabLudo\SharedCode\Constants\PlayerInfo.cs" Link="Constants\PlayerInfo.cs" />
+    <Compile Include="..\ColabLudo\SharedCode\SharedClasses.cs" Link="SharedClasses.cs" />
   </ItemGroup>
 
   <ItemGroup>

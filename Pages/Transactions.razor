@@ -1,116 +1,178 @@
 ﻿@page "/transactions"
 @inject PlayerState PlayerState
 
-<h3>Transactions</h3>
-
-@if (PagedTransactions == null || PagedTransactions.Count == 0)
-{
-    <div>No transactions yet.</div>
-}
-else
-{
-    <div class="mb-2 d-flex justify-content-between align-items-center">
-        <span>Showing @startIndex - @endIndex of @totalTransactions transactions</span>
-        <div>
-            <button class="btn btn-sm btn-outline-secondary me-1" @onclick="PrevPage" disabled="@isFirstPage">Previous</button>
-            <span class="fw-semibold">Page @currentPage of @totalPages</span>
-            <button class="btn btn-sm btn-outline-secondary ms-1" @onclick="NextPage" disabled="@isLastPage">Next</button>
+<body class="bg-gray-950 text-white font-sans scroll-smooth">
+    <section class="pt-16 pb-10 bg-gray-900" style="background-image:url('img/header-shape-lobelia.png');">
+        <!-- Header -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">T</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">R</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">A</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">N</span>
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">S</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">A</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">C</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">T</span>
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">I</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">O</span>
+                    <span style="color:whitesmoke;">N</span>
+                    <span style="color:whitesmoke;">S</span>
+                </span>
+            </h3>
+            <div class="mx-auto mb-6 h-1 w-32 rounded"
+                 style="background:linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
+            </div>
+            <p class="text-gray-300 text-sm md:text-base">
+                Wallet activity history (live data from PlayerState). Style aligned with Games page.
+            </p>
         </div>
-    </div>
 
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Transaction Id</th>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var tx in PagedTransactions)
+        <div class="container mx-auto px-4 max-w-7xl mt-10">
+            @if (totalTransactions == 0)
             {
-                Console.WriteLine("______________________>" + tx.Description);
-                <tr>
-                    <td>@tx.TransactionId</td>
-                    
-                    <td>
-                        @switch (tx.Description)
-                        {
-                            case "On-chain sweep":
-                                <span class="text-success fw-semibold">
-                                    <i class="bi bi-cash-coin me-1"></i>Deposit
-                                </span>
-                                break;
-
-                            case "Withdrawal":
-                                <span class="text-danger fw-semibold">
-                                    <i class="bi bi-coin me-1"></i>Withdrawal
-                                </span>
-                                break;
-
-                            case "GameWin":
-                                <span class="text-success fw-semibold">
-                                    <i class="bi bi-trophy-fill me-1"></i>Game Win
-                                </span>
-                                break;
-
-                            case "GameLoss":
-                                <span class="text-danger fw-semibold">
-                                    <i class="bi bi-x-circle-fill me-1"></i>Game Loss
-                                </span>
-                                break;
-
-                            case "Game Fee":
-                                <span class="text-secondary fw-semibold">
-                                    <i class="bi bi-controller me-1"></i>Game Fee
-                                </span>
-                                break;
-
-                            case "Game Refund":
-                                <span class="text-info fw-semibold">
-                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Game Refund
-                                </span>
-                                break;
-
-                            case "Daily Bonus":
-                                <span class="text-warning fw-semibold">
-                                    <i class="bi bi-gift me-1"></i>Daily Bonus
-                                </span>
-                                break;
-
-                            default:
-                                <span class="text-muted">@tx.Description</span>
-                                break;
-                        }
-
-
-                    </td>
-                    <td>@tx.Amount.ToString() Ludc</td>
-                    <td>@tx.CreatedDate.ToString("yyyy-MM-dd HH:mm")</td>
-                </tr>
+                <div class="text-center py-20 text-gray-400">
+                    No transactions yet.
+                </div>
             }
-        </tbody>
-    </table>
-}
+            else
+            {
+                <!-- Summary Tiles -->
+                <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 mb-10">
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Total</h4>
+                        <div class="text-3xl font-bold mt-2" style="color:#EB1026;">@totalTransactions</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Deposits</h4>
+                        <div class="text-3xl font-bold mt-2" style="color:#00B15A;">@_depositCount</div>
+                        <div class="text-xs text-gray-400 mt-1">@_depositAmount.ToString("N2")</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Withdrawals</h4>
+                        <div class="text-3xl font-bold mt-2 text-red-400">@_withdrawalCount</div>
+                        <div class="text-xs text-gray-400 mt-1">@_withdrawalAmount.ToString("N2")</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Game Wins</h4>
+                        <div class="text-3xl font-bold mt-2 text-green-400">@_gameWinCount</div>
+                        <div class="text-xs text-gray-400 mt-1">@_gameWinAmount.ToString("N2")</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Game Losses</h4>
+                        <div class="text-3xl font-bold mt-2 text-red-400">@_gameLossCount</div>
+                        <div class="text-xs text-gray-400 mt-1">@_gameLossAmount.ToString("N2")</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Net Change</h4>
+                        @{
+                            var netColor = _netChange >= 0 ? "text-green-400" : "text-red-400";
+                        }
+                        <div class="text-2xl font-bold mt-2 @netColor">@_netChange.ToString("N2")</div>
+                        <div class="text-xs text-gray-400 mt-1">Signed projection</div>
+                    </div>
+                </div>
+
+                <!-- Pagination / Range Info -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                    <span class="text-sm text-gray-300">
+                        Showing @startIndex - @endIndex of @totalTransactions
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <button class="px-3 py-1.5 rounded text-xs font-semibold border border-gray-600
+                                           disabled:opacity-40 disabled:cursor-not-allowed
+                                           bg-gray-800 hover:bg-gray-700 transition"
+                                @onclick="PrevPage" disabled="@isFirstPage">
+                            Prev
+                        </button>
+                        <span class="text-xs text-gray-400 font-semibold">
+                            Page @currentPage of @totalPages
+                        </span>
+                        <button class="px-3 py-1.5 rounded text-xs font-semibold border border-gray-600
+                                           disabled:opacity-40 disabled:cursor-not-allowed
+                                           bg-gray-800 hover:bg-gray-700 transition"
+                                @onclick="NextPage" disabled="@isLastPage">
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Transactions Table -->
+                <div class="overflow-x-auto rounded border border-gray-700">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-700 text-gray-200 uppercase text-xs tracking-wide">
+                            <tr>
+                                <th class="px-4 py-2 text-left">ID</th>
+                                <th class="px-4 py-2 text-left">Type</th>
+                                <th class="px-4 py-2 text-right">Amount</th>
+                                <th class="px-4 py-2 text-left">Date (UTC)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tx in PagedTransactions)
+                            {
+                                var (label, css, sign, tagColor) = MapDescription(tx.Description);
+                                var signedAmount = sign * tx.Amount;
+                                <tr class="odd:bg-gray-800 even:bg-gray-850 hover:bg-gray-700/60 transition">
+                                    <td class="px-4 py-2 font-mono text-xs">@tx.TransactionId</td>
+                                    <td class="px-4 py-2">
+                                        <span class="px-2 py-0.5 rounded text-xs font-semibold @tagColor">@label</span>
+                                    </td>
+                                    <td class="px-4 py-2 text-right font-semibold">
+                                        <span class="@css">
+                                            @((sign >= 0 ? "+" : "-") + Math.Abs(signedAmount).ToString("N2")) Ludc
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2 text-xs">@tx.CreatedDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <p class="text-xs text-gray-500 mt-3">
+                    NOTE: Net Change uses inferred sign rules by description. Adjust MapDescription() / SignedAmount() for backend semantics.
+                </p>
+            }
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-center text-xs text-gray-400 py-6">
+        &copy; 2025 Ludo Cities Transactions
+    </footer>
+</body>
 
 @code {
     private int currentPage = 1;
     private int pageSize = 30;
-    private int totalTransactions => PlayerState.Player?.Wallet?.Transactions?.Count ?? 0;
-    private int totalPages => (int)Math.Ceiling((double)totalTransactions / pageSize);
 
     private List<SharedCode.Constants.WalletTransaction> PagedTransactions = new();
 
-    private bool isFirstPage => currentPage == 1;
-    private bool isLastPage => currentPage == totalPages;
+    private int totalTransactions => PlayerState.Player?.Wallet?.Transactions?.Count ?? 0;
+    private int totalPages => totalTransactions == 0 ? 1 : (int)Math.Ceiling((double)totalTransactions / pageSize);
 
-    private int startIndex => ((currentPage - 1) * pageSize) + 1;
+    private bool isFirstPage => currentPage == 1;
+    private bool isLastPage => currentPage >= totalPages;
+
+    private int startIndex => totalTransactions == 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
     private int endIndex => Math.Min(currentPage * pageSize, totalTransactions);
+
+    // Aggregated stats
+    private int _depositCount;
+    private int _withdrawalCount;
+    private int _gameWinCount;
+    private int _gameLossCount;
+    private decimal _depositAmount;
+    private decimal _withdrawalAmount;
+    private decimal _gameWinAmount;
+    private decimal _gameLossAmount;
+    private decimal _netChange;
 
     protected override void OnInitialized()
     {
         LoadPage();
+        ComputeAggregates();
     }
 
     private void LoadPage()
@@ -122,6 +184,10 @@ else
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
+        }
+        else
+        {
+            PagedTransactions = new();
         }
     }
 
@@ -142,4 +208,48 @@ else
             LoadPage();
         }
     }
+
+    private void ComputeAggregates()
+    {
+        var all = PlayerState.Player?.Wallet?.Transactions ?? new List<SharedCode.Constants.WalletTransaction>();
+
+        _depositCount = all.Count(t => t.Description is "On-chain sweep");
+        _withdrawalCount = all.Count(t => t.Description is "Withdrawal");
+        _gameWinCount = all.Count(t => t.Description is "GameWin");
+        _gameLossCount = all.Count(t => t.Description is "GameLoss");
+
+        _depositAmount = all.Where(t => t.Description is "On-chain sweep").Sum(t => t.Amount);
+        _withdrawalAmount = all.Where(t => t.Description is "Withdrawal").Sum(t => t.Amount);
+        _gameWinAmount = all.Where(t => t.Description is "GameWin").Sum(t => t.Amount);
+        _gameLossAmount = all.Where(t => t.Description is "GameLoss").Sum(t => t.Amount);
+
+        _netChange = all.Sum(SignedAmount);
+    }
+
+    private decimal SignedAmount(SharedCode.Constants.WalletTransaction tx)
+        => tx.Description switch
+        {
+            "On-chain sweep" => tx.Amount,          // deposit +
+            "Withdrawal" => -tx.Amount,            // withdrawal -
+            "GameWin" => tx.Amount,                // win +
+            "GameLoss" => -tx.Amount,              // loss -
+            "Game Fee" => -tx.Amount,              // fee -
+            "Game Refund" => tx.Amount,            // refund +
+            "Daily Bonus" => tx.Amount,            // bonus +
+            _ => tx.Amount                         // default assume +
+        };
+
+    // Returns (label, amountCss, sign, tagCss)
+    private (string label, string amountCss, int sign, string tagColor) MapDescription(string description)
+        => description switch
+        {
+            "On-chain sweep" => ("Deposit", "text-green-400", +1, "bg-green-600/30 text-green-300"),
+            "Withdrawal" => ("Withdrawal", "text-red-400", -1, "bg-red-600/30 text-red-300"),
+            "GameWin" => ("Game Win", "text-green-400", +1, "bg-green-600/30 text-green-300"),
+            "GameLoss" => ("Game Loss", "text-red-400", -1, "bg-red-600/30 text-red-300"),
+            "Game Fee" => ("Game Fee", "text-red-300", -1, "bg-rose-600/30 text-rose-300"),
+            "Game Refund" => ("Game Refund", "text-blue-300", +1, "bg-blue-600/30 text-blue-300"),
+            "Daily Bonus" => ("Daily Bonus", "text-yellow-300", +1, "bg-yellow-600/30 text-yellow-300"),
+            _ => (description, "text-gray-300", +1, "bg-gray-600/30 text-gray-300")
+        };
 }

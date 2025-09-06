@@ -4,122 +4,219 @@
 @inject HttpClient Http
 @using System.ComponentModel.DataAnnotations
 
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-6">
-            <div class="card shadow-lg">
-                <div class="card-body">
-                    <h4 class="card-title text-center mb-4">DEPOSIT</h4>
-                    <div class="d-flex align-items-center justify-content-between bg-light rounded p-3 mb-4">
-                        <div>
-                            <div class="small text-muted">TOTAL BALANCE AVAILABLE</div>
-                            <div class="fw-bold">@totalBalance.ToString("0.00") LUDC</div>
-                        </div>
-                        <img src="solicon.webp" alt="Sol Icon" style="width:32px;height:32px;" />
+<body class="bg-gray-950 text-white font-sans scroll-smooth">
+    <section class="pt-16 pb-10 bg-gray-900" style="background-image:url('img/header-shape-lobelia.png');">
+        <!-- Header -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">D</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">E</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">P</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">O</span>
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">S</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">I</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">T</span>
+                </span>
+            </h3>
+            <div class="mx-auto mb-6 h-1 w-28 rounded"
+                 style="background:linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);"></div>
+            <p class="text-gray-300 text-sm md:text-base">
+                Add funds to your in-game wallet. Rates auto-refresh (fallback defaults applied on failure).
+            </p>
+        </div>
+
+        <div class="container mx-auto px-4 max-w-5xl mt-10">
+            <!-- Summary Tiles -->
+            <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-4 mb-10">
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Available Balance</h4>
+                    <div class="text-3xl font-bold mt-2" style="color:#EB1026;">@totalBalance.ToString("N2")</div>
+                    <div class="text-xs text-gray-400 mt-1">LUDC</div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Method</h4>
+                    <div class="text-2xl font-bold mt-2" style="color:#00B15A;">@(!string.IsNullOrEmpty(depositModel.Method) ? depositModel.Method : "—")</div>
+                    <div class="text-xs text-gray-400 mt-1">Selection</div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Conversion</h4>
+                    <div class="text-sm font-semibold mt-2 text-yellow-300 truncate">
+                        @GetConversionInfo()
                     </div>
-                    <EditForm Model="@depositModel" OnValidSubmit="HandleDeposit">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
-                        <div class="mb-3">
-                            <label for="method" class="form-label">Deposit Method</label>
-                            <InputSelect id="method" class="form-control" @bind-Value="depositModel.Method" @onchange="MethodChanged">
-                                @foreach (var method in methodOptions)
-                                {
-                                    <option value="@method">@method</option>
-                                }
-                            </InputSelect>
-                            <ValidationMessage For="@(() => depositModel.Method)" />
-                        </div>
-                        @if (!string.IsNullOrEmpty(depositModel.Method))
-                        {
-                            @if (depositModel.Method == "SOLANA" || depositModel.Method == "USDC")
-                            {
-                                <div class="mb-3">
-                                    <label for="amount" class="form-label">@depositModel.Method Amount</label>
-                                    <InputNumber id="amount" class="form-control" @bind-Value="depositModel.Amount" />
-                                    <ValidationMessage For="@(() => depositModel.Amount)" />
-                                </div>
-                                <div class="mb-2 small text-muted">
-                                    @GetConversionInfo()
-                                </div>
-                                <div class="mb-2">
-                                    <b>You'll receive:</b>
-                                    <span class="fw-bold text-success">@CalculatedLUDC.ToString("0.##")</span> LUDC
-                                </div>
-                                <div class="text-center mb-3">
-                                    <img src="@QRCodeUrl" alt="QR Code" width="180" height="180" class="rounded mb-2" style="background:#4031af;" />
-                                </div>
-                                <div class="alert alert-warning text-center py-2 small mb-2">
-                                    @($"{depositModel.Method} ADDRESS ONLY SEND ON DEVNET")
-                                </div>
-                                <div class="bg-secondary text-white text-center rounded p-2 mb-2" id="depositAddress">
-                                    @depositAddress
-                                </div>
-
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-warning flex-grow-1" type="button" @onclick="CopyAddressAsync">COPY</button>
-                                    <button class="btn btn-primary flex-grow-1" type="submit">SUBMIT DEPOSIT</button>
-                                    @if (!string.IsNullOrEmpty(_phantomWalletAddress))
-                                    {
-                                        <button class="btn btn-success flex-grow-1" type="button" @onclick="DepositViaPhantomAsync">
-                                            Deposit via Phantom Wallet
-                                        </button>
-                                    }
-                                </div>
-
-
-                                @if (copySuccess)
-                                {
-                                    <div class="text-success text-center mt-2">Address copied!</div>
-                                }
-
-                               
-                            }
-                            else if (depositModel.Method == "JazzCash" || depositModel.Method == "EasyPaisa" || depositModel.Method == "Paytm")
-                            {
-                                <div class="mb-3">
-                                    <label for="amount" class="form-label">
-                                        Amount (@(depositModel.Method == "Paytm" ? "INR" : "PKR"))
-                                    </label>
-                                    <InputNumber id="amount" class="form-control" @bind-Value="depositModel.Amount" />
-                                    <ValidationMessage For="@(() => depositModel.Amount)" />
-                                </div>
-                                <div class="mb-2 small text-muted">
-                                    @GetConversionInfo()
-                                </div>
-                                <div class="mb-2">
-                                    <b>You'll receive:</b>
-                                    <span class="fw-bold text-success">@CalculatedLUDC.ToString("0.##")</span> LUDC
-                                </div>
-                                <div class="mb-3">
-                                    <label for="ref" class="form-label">Transaction Reference / ID</label>
-                                    <InputText id="ref" class="form-control" @bind-Value="depositModel.Reference" />
-                                    <ValidationMessage For="@(() => depositModel.Reference)" />
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Upload Receipt Image</label>
-                                    <InputFile OnChange="HandleReceiptUpload" accept="image/*" />
-                                    @if (!string.IsNullOrEmpty(depositModel.ReceiptImageBase64))
-                                    {
-                                        <img src="@depositModel.ReceiptImageBase64" alt="Receipt Preview" class="img-thumbnail mt-2" style="max-height:120px;" />
-                                    }
-                                </div>
-                                <div class="alert alert-info text-center py-2 small mb-2">
-                                    Please send deposit to our official @depositModel.Method account and enter the reference/ID.
-                                </div>
-                                <button class="btn btn-primary w-100" type="submit">SUBMIT DEPOSIT</button>
-                            }
-                        }
-                    </EditForm>
-                    @if (successMessage != null)
-                    {
-                        <div class="alert alert-success mt-3">@successMessage</div>
-                    }
+                    <div class="text-xs text-gray-500 mt-1">Indicative</div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">You Receive</h4>
+                    <div class="text-2xl font-bold mt-2 text-green-400">
+                        @(CalculatedLUDC > 0 ? CalculatedLUDC.ToString("0.##") : "0")
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1">LUDC (est.)</div>
                 </div>
             </div>
+
+            <!-- Deposit Form Card -->
+            <div class="bg-gray-800 rounded shadow p-6">
+                <EditForm Model="@depositModel" OnValidSubmit="HandleDeposit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-red-400 text-xs mb-4 space-y-1" />
+
+                    <!-- Method -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                            Deposit Method
+                        </label>
+                        <InputSelect class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00B4E1]/60"
+                                     @bind-Value="depositModel.Method" @onchange="MethodChanged">
+                            @foreach (var method in methodOptions)
+                            {
+                                <option value="@method">@method</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => depositModel.Method)" class="text-red-400 text-xs mt-1" />
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(depositModel.Method))
+                    {
+                        @if (depositModel.Method is "SOLANA" or "USDC")
+                        {
+                            <!-- Crypto Amount -->
+                            <div class="mb-5">
+                                <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                    @depositModel.Method Amount
+                                </label>
+                                <InputNumber @bind-Value="depositModel.Amount"
+                                             class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#EB1026]/60" />
+                                <ValidationMessage For="@(() => depositModel.Amount)" class="text-red-400 text-xs mt-1" />
+                                <div class="text-xs text-gray-400 mt-2">@GetConversionInfo()</div>
+                            </div>
+
+                            <!-- Receive Calculation -->
+                            <div class="mb-5 text-sm">
+                                <span class="text-gray-300">You'll receive:</span>
+                                <span class="ml-2 font-bold text-green-400">@CalculatedLUDC.ToString("0.##")</span>
+                                <span class="text-gray-400">LUDC (after confirmation)</span>
+                            </div>
+
+                            <!-- QR + Address -->
+                            <div class="flex flex-col md:flex-row gap-6 mb-6">
+                                <div class="md:w-52 flex flex-col items-center">
+                                    <img src="@QRCodeUrl"
+                                         alt="QR Code"
+                                         class="rounded shadow-md bg-[#4031af] p-2 w-48 h-48 object-contain" />
+                                    <div class="text-[10px] text-gray-400 mt-2 uppercase tracking-wide">
+                                        Scan to send @depositModel.Method
+                                    </div>
+                                </div>
+                                <div class="flex-1 space-y-4">
+                                    <div class="bg-gray-700/60 rounded p-3 text-xs break-all font-mono select-all border border-gray-600" id="depositAddress">
+                                        @depositAddress
+                                    </div>
+                                    <div class="text-xs text-yellow-300 font-semibold">
+                                        @(depositModel.Method) ADDRESS ONLY (Devnet)
+                                    </div>
+
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <button type="button"
+                                                class="flex-1 bg-gradient-to-r from-[#FDAF00] to-[#EB1026] text-black font-semibold text-sm rounded px-4 py-2 hover:opacity-90 transition"
+                                                @onclick="CopyAddressAsync">
+                                            Copy Address
+                                        </button>
+                                        <button type="submit"
+                                                class="flex-1 bg-gradient-to-r from-[#00B15A] to-[#00B4E1] text-black font-semibold text-sm rounded px-4 py-2 hover:opacity-90 transition">
+                                            Submit Deposit
+                                        </button>
+                                        @if (!string.IsNullOrEmpty(_phantomWalletAddress))
+                                        {
+                                            <button type="button"
+                                                    class="flex-1 bg-gradient-to-r from-[#EB1026] via-[#FDAF00] to-[#00B4E1] text-black font-semibold text-sm rounded px-4 py-2 hover:opacity-90 transition"
+                                                    @onclick="DepositViaPhantomAsync">
+                                                Phantom Wallet
+                                            </button>
+                                        }
+                                    </div>
+
+                                    @if (copySuccess)
+                                    {
+                                        <div class="text-green-400 text-xs font-semibold">
+                                            Address copied to clipboard.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else if (depositModel.Method is "JazzCash" or "EasyPaisa" or "Paytm")
+                        {
+                            <!-- Local Currency -->
+                            <div class="mb-5">
+                                <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                    Amount (@(depositModel.Method == "Paytm" ? "INR" : "PKR"))
+                                </label>
+                                <InputNumber @bind-Value="depositModel.Amount"
+                                             class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FDAF00]/60" />
+                                <ValidationMessage For="@(() => depositModel.Amount)" class="text-red-400 text-xs mt-1" />
+                                <div class="text-xs text-gray-400 mt-2">@GetConversionInfo()</div>
+                            </div>
+
+                            <div class="mb-5 text-sm">
+                                <span class="text-gray-300">You will receive:</span>
+                                <span class="ml-2 font-bold text-green-400">@CalculatedLUDC.ToString("0.##")</span>
+                                <span class="text-gray-400">LUDC (after review)</span>
+                            </div>
+
+                            <div class="mb-5">
+                                <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                    Transaction Reference / ID
+                                </label>
+                                <InputText @bind-Value="depositModel.Reference"
+                                           class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00B4E1]/60" />
+                                <ValidationMessage For="@(() => depositModel.Reference)" class="text-red-400 text-xs mt-1" />
+                            </div>
+
+                            <div class="mb-6">
+                                <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                    Upload Receipt Image
+                                </label>
+                                <InputFile OnChange="HandleReceiptUpload" accept="image/*" class="text-xs text-gray-300" />
+                                @if (!string.IsNullOrEmpty(depositModel.ReceiptImageBase64))
+                                {
+                                    <img src="@depositModel.ReceiptImageBase64"
+                                         alt="Receipt"
+                                         class="rounded mt-3 border border-gray-600 max-h-40 object-contain" />
+                                }
+                            </div>
+
+                            <div class="bg-blue-700/30 border border-blue-600/40 text-blue-200 text-xs rounded px-4 py-3 mb-6">
+                                Send your deposit to the official @depositModel.Method channel, then enter the reference and upload the receipt.
+                                Manual review may apply.
+                            </div>
+
+                            <button type="submit"
+                                    class="w-full bg-gradient-to-r from-[#EB1026] via-[#FDAF00] to-[#00B4E1] text-black font-semibold text-sm rounded px-5 py-3 hover:opacity-90 transition">
+                                Submit Deposit
+                            </button>
+                        }
+                    }
+
+                    @if (successMessage != null)
+                    {
+                        <div class="mt-6 bg-green-700/30 border border-green-600/50 rounded px-4 py-3 text-sm text-green-300">
+                            @successMessage
+                        </div>
+                    }
+                </EditForm>
+
+                <p class="text-xs text-gray-500 mt-6">
+                    NOTE: Exchange rates are indicative (Coingecko). Replace FetchRates() with a backend oracle when ready.
+                </p>
+            </div>
         </div>
-    </div>
-</div>
+    </section>
+
+    <footer class="bg-gray-900 text-center text-xs text-gray-400 py-6 mt-10">
+        &copy; 2025 Ludo Cities Deposit
+    </footer>
+</body>
 
 @code {
     private decimal totalBalance = 0.0m;
@@ -127,29 +224,23 @@
     private string QRCodeUrl => $"https://api.qrserver.com/v1/create-qr-code/?data={depositAddress}&size=180x180";
     private bool copySuccess = false;
     private string? successMessage;
-
-
     private string? _phantomWalletAddress;
 
-    private DepositModel depositModel = new() { Method = "SOLANA" }; // Default
-    private List<string> methodOptions = new()
-    {
-        "SOLANA", "USDC", "JazzCash", "EasyPaisa", "Paytm"
-    };
+    private DepositModel depositModel = new() { Method = "SOLANA" }; // Default selection
+    private List<string> methodOptions = new() { "SOLANA", "USDC", "JazzCash", "EasyPaisa", "Paytm" };
 
+    // Rates (fallback defaults)
     private decimal UsdcToPkrRate = 285m;
     private decimal UsdcToInrRate = 83m;
     private decimal SolToUsdRate = 140m;
     private const decimal UsdcToLudcRate = 1000m;
-
     private decimal PkrToLudcRate => UsdcToPkrRate > 0 ? (UsdcToLudcRate / UsdcToPkrRate) : 0;
     private decimal InrToLudcRate => UsdcToInrRate > 0 ? (UsdcToLudcRate / UsdcToInrRate) : 0;
 
     protected override async Task OnInitializedAsync()
     {
-        PlayerState.OnChange += UpdatePlayerData; // 🔁 Subscribe to changes
-
-        UpdatePlayerData(); // Load initial player info
+        PlayerState.OnChange += UpdatePlayerData;
+        UpdatePlayerData();
 
         try
         {
@@ -162,12 +253,12 @@
 
         await FetchRates();
     }
+
     private void UpdatePlayerData()
     {
         depositAddress = PlayerState.Player?.Wallet?.WalletAddress ?? "";
         totalBalance = PlayerState.Player?.Wallet?.AvailableBalance ?? 0.0m;
-
-        InvokeAsync(StateHasChanged); // Ensure the UI is updated
+        InvokeAsync(StateHasChanged);
     }
 
     private async Task FetchRates()
@@ -188,9 +279,7 @@
         }
         catch
         {
-            UsdcToPkrRate = 285m;
-            UsdcToInrRate = 83m;
-            SolToUsdRate = 140m;
+            // Fallback defaults already set
         }
         StateHasChanged();
     }
@@ -209,47 +298,40 @@
     }
 
     private decimal CalculatedLUDC
-    {
-        get
+        => depositModel.Method switch
         {
-            if (depositModel.Method == "USDC")
-                return depositModel.Amount * UsdcToLudcRate;
-            if (depositModel.Method == "SOLANA")
-                return depositModel.Amount * SolToUsdRate * UsdcToLudcRate;
-            if (depositModel.Method == "JazzCash" || depositModel.Method == "EasyPaisa")
-                return depositModel.Amount * PkrToLudcRate;
-            if (depositModel.Method == "Paytm")
-                return depositModel.Amount * InrToLudcRate;
-            return 0;
-        }
-    }
+            "USDC" => depositModel.Amount * UsdcToLudcRate,
+            "SOLANA" => depositModel.Amount * SolToUsdRate * UsdcToLudcRate,
+            "JazzCash" or "EasyPaisa" => depositModel.Amount * PkrToLudcRate,
+            "Paytm" => depositModel.Amount * InrToLudcRate,
+            _ => 0
+        };
 
     private string GetConversionInfo()
-    {
-        if (depositModel.Method == "USDC")
-            return $"1 USDC = {UsdcToLudcRate} LUDC";
-        if (depositModel.Method == "SOLANA")
-            return $"1 SOL = {SolToUsdRate} USDC = {(SolToUsdRate * UsdcToLudcRate):0.##} LUDC";
-        if (depositModel.Method == "JazzCash" || depositModel.Method == "EasyPaisa")
-            return $"1 PKR = {PkrToLudcRate:F4} LUDC (1 USDC ≈ {UsdcToPkrRate} PKR)";
-        if (depositModel.Method == "Paytm")
-            return $"1 INR = {InrToLudcRate:F4} LUDC (1 USDC ≈ {UsdcToInrRate} INR)";
-        return "";
-    }
+        => depositModel.Method switch
+        {
+            "USDC" => $"1 USDC = {UsdcToLudcRate} LUDC",
+            "SOLANA" => $"1 SOL = {SolToUsdRate} USDC = {(SolToUsdRate * UsdcToLudcRate):0.##} LUDC",
+            "JazzCash" or "EasyPaisa" => $"1 PKR = {PkrToLudcRate:F4} LUDC (1 USDC ≈ {UsdcToPkrRate} PKR)",
+            "Paytm" => $"1 INR = {InrToLudcRate:F4} LUDC (1 USDC ≈ {UsdcToInrRate} INR)",
+            _ => ""
+        };
 
     private async Task CopyAddressAsync()
     {
-        await JS.InvokeVoidAsync("navigator.clipboard.writeText", depositAddress);
-        copySuccess = true;
-        StateHasChanged();
-        await Task.Delay(1200);
-        copySuccess = false;
-        StateHasChanged();
+        if (!string.IsNullOrEmpty(depositAddress))
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", depositAddress);
+            copySuccess = true;
+            StateHasChanged();
+            await Task.Delay(1200);
+            copySuccess = false;
+            StateHasChanged();
+        }
     }
 
-    private void MethodChanged(ChangeEventArgs e)
+    private void MethodChanged(ChangeEventArgs _)
     {
-        depositModel.Method = e.Value?.ToString();
         depositModel.Amount = 0;
         depositModel.Reference = "";
         depositModel.ReceiptImage = null;
@@ -264,7 +346,7 @@
         if (file != null)
         {
             var buffer = new byte[file.Size];
-            await file.OpenReadStream(2 * 1024 * 1024).ReadAsync(buffer); // Max 2MB
+            await file.OpenReadStream(2 * 1024 * 1024).ReadAsync(buffer);
             depositModel.ReceiptImageBase64 = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
         }
     }
@@ -273,19 +355,22 @@
     {
         successMessage = depositModel.Method switch
         {
-            "SOLANA" or "USDC" => $"Deposit to {depositModel.Method} address detected! Your balance will be updated after confirmation.",
-            "JazzCash" or "EasyPaisa" => $"Deposit of {depositModel.Amount} PKR ({CalculatedLUDC} LUDC) via {depositModel.Method} is being processed. Reference: {depositModel.Reference}",
-            "Paytm" => $"Deposit of {depositModel.Amount} INR ({CalculatedLUDC} LUDC) via Paytm is being processed. Reference: {depositModel.Reference}",
-            _ => $"Deposit submitted!"
+            "SOLANA" or "USDC" =>
+                $"Deposit to {depositModel.Method} address detected / pending. Balance updates after confirmations.",
+            "JazzCash" or "EasyPaisa" =>
+                $"Deposit {depositModel.Amount} PKR ({CalculatedLUDC:0.##} LUDC) via {depositModel.Method} submitted. Ref: {depositModel.Reference}",
+            "Paytm" =>
+                $"Deposit {depositModel.Amount} INR ({CalculatedLUDC:0.##} LUDC) via Paytm submitted. Ref: {depositModel.Reference}",
+            _ => "Deposit submitted."
         };
-        depositModel = new DepositModel() { Method = "SOLANA" };
+        depositModel = new DepositModel { Method = "SOLANA" };
         StateHasChanged();
+        await Task.CompletedTask;
     }
 
     private async Task DepositViaPhantomAsync()
     {
-        if (string.IsNullOrEmpty(_phantomWalletAddress) || string.IsNullOrEmpty(depositAddress))
-            return;
+        if (string.IsNullOrEmpty(_phantomWalletAddress) || string.IsNullOrEmpty(depositAddress)) return;
 
         if (depositModel.Method == "SOLANA")
         {
@@ -296,7 +381,12 @@
             await JS.InvokeVoidAsync("walletInterop.sendUsdc", depositAddress, depositModel.Amount);
         }
 
-        successMessage = $"Deposit of {depositModel.Amount} {depositModel.Method} sent from Phantom. Balance will update once confirmed.";
+        successMessage = $"Deposit {depositModel.Amount} {depositModel.Method} submitted via Phantom. Pending network confirmation.";
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        PlayerState.OnChange -= UpdatePlayerData;
     }
 }

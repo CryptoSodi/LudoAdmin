@@ -321,49 +321,76 @@
         <!-- Header -->
         <div class="container mx-auto px-4 max-w-3xl text-center">
             <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
-                <span class="whitespace-nowrap">
+                @* <span class="whitespace-nowrap">
                     <span style="-webkit-text-stroke:1px black; color:#EB1026;">A</span>
                     <span style="-webkit-text-stroke:1px black; color:#00B15A;">B</span>
                     <span style="-webkit-text-stroke:1px black; color:#FDAF00;">O</span>
                     <span style="-webkit-text-stroke:1px black; color:#00B4E1;">U</span>
                     <span style="color: whitesmoke;">T</span>
+                </span> *@
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">T</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">E</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">A</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">M</span>
                 </span>
             </h3>
             <div class="mx-auto mb-6 h-1 w-28 rounded" style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);"></div>
         </div>
 
-        <!-- Grid Container for Equal Height Cards -->
+        <!-- Two Profile Cards -->
         <div class="container mx-auto px-4 max-w-6xl grid md:grid-cols-2 gap-8 items-stretch">
-            <!-- Left Card -->
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow flex flex-col justify-between">
-                <div class="flex items-center space-x-4 mb-4">
-                    <img src="img/sodi.jpg" alt="Tassaduq (CryptoSodi)" class="w-20 h-20 border-2 border-white">
-                    <h4 class="text-2xl font-semibold" style="color:#EB1026;">Tassaduq (CryptoSodi)</h4>
+            <!-- Founder (Tassaduq) -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow flex flex-col">
+                <div class="flex items-center gap-5 mb-6">
+                    <div class="p-[3px] rounded-full bg-gradient-to-tr from-[#EB1026] via-[#FDAF00] to-[#00B4E1] shadow-lg">
+                        <img src="img/sodi.jpg"
+                             alt="Tassaduq (CryptoSodi)"
+                             class="w-28 h-28 object-cover rounded-full ring-2 ring-gray-900" />
+                    </div>
+                    <div>
+                        <h4 class="text-2xl font-semibold leading-tight" style="color:#EB1026;">Tassaduq (CryptoSodi)</h4>
+                        <span class="text-xs font-semibold tracking-wider uppercase text-gray-300">Founder</span>
+                    </div>
                 </div>
-                <p class="text-gray-300 leading-relaxed">
-                    I have worked on several crypto and NFT projects including
-                    <span class="font-semibold text-white">ImageCoin</span>,
-                    <span class="font-semibold text-white">Melonheads Protocols</span>, and
-                    <a href="https://www.womenrise.art" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-400 hover:underline">WomenRise.art</a>.
-                    My expertise includes smart contracts, tokenomics, NFT marketplaces, and decentralized systems design.
+                <p class="text-gray-300 leading-relaxed mb-5">
+                    Founder of <span class="font-semibold text-white">LudoCities</span> and a <span class="font-semibold text-white">Solana-first blockchain architect</span>. I lead all on-chain systems: the <span class="font-semibold text-white">LUDC token</span> and stake-to-play escrow, rewards distribution, and the City NFT economy (minting, upgrades, and revenue share). I design tokenomics and smart-contract logic for low fees, fast finality, and verifiable ownership—alongside <span class="font-semibold text-white">Phantom</span> onboarding and <span class="font-semibold text-white">Civic</span> compliance to keep the ecosystem safe.
                 </p>
+                <div class="mt-auto">
+                    <h5 class="text-sm font-semibold mb-2 tracking-wide text-gray-200">Past Projects</h5>
+                    <ul class="list-disc list-inside text-gray-300 space-y-2 text-sm">
+                        <li><strong>ImageCoin</strong> — Creative crypto token enabling on-chain image support.</li>
+                        <li><strong>Melonhead Protocols</strong> — DeFi mechanisms for yield & liquidity optimization.</li>
+                        <li><strong><a href="https://www.womenrise.art" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">WomenRise.art</a></strong> — NFT art celebrating global women leaders.</li>
+                    </ul>
+                </div>
             </div>
 
-            <!-- Right Card -->
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow flex flex-col justify-between">
-                <h4 class="text-xl font-semibold mb-3" style="color:#00B15A;">Past Projects</h4>
-                <ul class="list-disc list-inside text-gray-300 space-y-3">
-                    <li>
-                        <strong>ImageCoin</strong> — A creative crypto token focused on support saving images on chain.
-                    </li>
-                    <li>
-                        <strong>MelonheadProtocols</strong> — A suite of DeFi mechanisms optimized for yield strategies and liquidity pooling.
-                    </li>
-                    <li>
-                        <strong><a href="https://www.womenrise.art" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">WomenRise.art</a></strong> — An NFT collection of 10,000+ unique artworks celebrating women activists, scientists, and coders worldwide.
-                    </li>
-                </ul>
+            <!-- Co-founder (Haris) -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow flex flex-col">
+                <div class="flex items-center gap-5 mb-6">
+                    <div class="p-[3px] rounded-full bg-gradient-to-tr from-[#00B15A] via-[#00B4E1] to-[#FDAF00] shadow-lg">
+                        <img src="img/haris.png"
+                             alt="Haris Raza"
+                             class="w-28 h-28 object-cover rounded-full ring-2 ring-gray-900" />
+                    </div>
+                    <div>
+                        <h4 class="text-2xl font-semibold leading-tight" style="color:#00B15A;">Haris Raza</h4>
+                        <span class="text-xs font-semibold tracking-wider uppercase text-gray-300">Co-founder</span>
+                    </div>
+                </div>
+                <p class="text-gray-300 leading-relaxed">
+                    Co-founder of <span class="font-semibold text-white">LudoCities</span> and a senior software engineer with 10 years in high-reliability fintech.
+                    I architect the <span class="font-semibold text-white">off-chain platform</span> behind our real-time matches and tournaments—matchmaking, leaderboards, payouts, and telemetry—built for fairness, security, and speed.
+                    I turn on-chain systems into clean, fast APIs so crypto and NFTs stay invisible to the player—delivering smooth, low-latency gameplay.
+                </p>
+                <div class="mt-auto">
+                    <p class="text-gray-300 leading-relaxed">
+                        Before LudoCities I built large-scale services on <span class="font-semibold text-white">Azure/AWS</span> and shipped complex <span class="font-semibold text-white">front-end</span> experiences—now I channel that rigor into reliable, scalable game services which built these <span class="font-semibold text-white">web3 features</span> to serve <span class="font-semibold text-white">gameplay</span> first: smooth turns, fair matchmaking, snappy loads, and low-latency tournaments without tech friction.
+                    </p>
+                </div>
             </div>
+
         </div>
     </section>
 

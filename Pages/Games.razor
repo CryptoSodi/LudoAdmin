@@ -1,113 +1,216 @@
 ﻿@page "/games"
 @inject PlayerState PlayerState
-@using SharedCode.Constants
 @inject LudoAdmin.Service.HubService Hub
 @inject LudoAdmin.Service.AuthService Auth
 
-<h3>Game History</h3>
+<body class="bg-gray-950 text-white font-sans scroll-smooth">
+    <section class="pt-16 pb-10 bg-gray-900" style="background-image:url('img/header-shape-lobelia.png');">
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">G</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">A</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">M</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">E</span>
+                    <span style="color:whitesmoke;">S</span>
+                </span>
+            </h3>
+            <div class="mx-auto mb-6 h-1 w-28 rounded"
+                 style="background:linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
+            </div>
+            <p class="text-gray-300 text-sm md:text-base">
+                Historical match records (placeholder seed data – replace with backend integration).
+            </p>
+        </div>
 
-@if (games == null)
-{
-    <p>Loading games...</p>
-}
-else if (games.Count == 0)
-{
-    <p>No games played yet.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Game Type</th>
-                <th>Room Code</th>
-                <th>State</th>
-                <th>Bet Amount</th>
-                <th>Win State</th>                
-                <th>Is Private</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var game in games)
+        <div class="container mx-auto px-4 max-w-7xl mt-10">
+            @if (_loading)
             {
-                <tr>
-                    <td>@game.GameId</td>
-                    <td>
-                        @if (game.GameType == "2")
-                        {
-                            @:1vs1
-                        }
-                        else if (game.GameType == "3")
-                        {
-                            @:1vs2
-                            
-                        }else if (game.GameType == "4")
-                        {
-                            @:1vs3
-                        }
-                        else if (game.GameType == "22")
-                        {
-                            @:2vs2
-                        }
-                        else
-                        {
-                            @:Unknown
-                        }
-                    </td>
-                    <td>@game.RoomCode</td>
-                    <td>@game.State</td>
-                    <td>@game.BetAmount</td>
-                    <td>
-                        @if (game.Winner1 == PlayerState.Player.PlayerId || game.Winner2 == PlayerState.Player.PlayerId)
-                        {
-                            @if (game.GameType == "2" || game.GameType == "22")
-                            {
-                                @:Won @(game.BetAmount * 2)
-                            }
-                            else if (game.GameType == "3")
-                            {
-                                @:Won @(game.BetAmount * 3)
-
-                            }
-                            else if (game.GameType == "4")
-                            {
-                                @:Won @(game.BetAmount * 4)
-                            }
-                            else
-                            {
-                                @:Unknown
-                            }
-                        }
-                        else
-                        {
-                            
-                                @:Lost @(game.BetAmount)
-                        }
-                    </td>
-                    <td>@game.IsPrivate</td>
-                    <td>@game.CreatedDate.ToString("yyyy-MM-dd HH:mm")</td>
-                </tr>
+                <div class="text-center py-20 text-gray-300">Loading games...</div>
             }
-        </tbody>
-    </table>
-}
+            else if (_games.Count == 0)
+            {
+                <div class="text-center py-16 text-gray-400">No games recorded.</div>
+            }
+            else
+            {
+                <!-- Summary Tiles -->
+                <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 mb-10">
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Total Games</h4>
+                        <div class="text-3xl font-bold mt-2" style="color:#EB1026;">@_games.Count</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Wins</h4>
+                        <div class="text-3xl font-bold mt-2" style="color:#00B15A;">@_wins</div>
+                        <div class="text-xs text-gray-400 mt-1">@WinRate().ToString("N1")% win rate</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Losses</h4>
+                        <div class="text-3xl font-bold mt-2" style="color:#EB1026;">@_losses</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Total Bet</h4>
+                        <div class="text-2xl font-bold mt-2 text-yellow-300">
+                            @_games.Sum(g => g.BetAmount).ToString("N2")
+                        </div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Gross Winnings</h4>
+                        <div class="text-2xl font-bold mt-2 text-green-400">
+                            @_games.Where(IsWin).Sum(g => Payout(g)).ToString("N2")
+                        </div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Net Result</h4>
+                        @{
+                            var net = _games.Where(IsWin).Sum(g => Payout(g)) - _games.Where(g => !IsWin(g)).Sum(g => g.BetAmount);
+                            var netColor = net >= 0 ? "text-green-400" : "text-red-400";
+                        }
+                        <div class="text-2xl font-bold mt-2 @netColor">
+                            @net.ToString("N2")
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Games Table -->
+                <div class="overflow-x-auto rounded border border-gray-700">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-700 text-gray-200 uppercase text-xs tracking-wide">
+                            <tr>
+                                <th class="px-4 py-2 text-left">ID</th>
+                                <th class="px-4 py-2 text-left">Type</th>
+                                <th class="px-4 py-2 text-left">Room</th>
+                                <th class="px-4 py-2 text-left">State</th>
+                                <th class="px-4 py-2 text-right">Bet</th>
+                                <th class="px-4 py-2 text-right">Outcome</th>
+                                <th class="px-4 py-2 text-center">Private</th>
+                                <th class="px-4 py-2 text-left">Date (UTC)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var g in _games.OrderByDescending(g => g.CreatedDate))
+                            {
+                                var win = IsWin(g);
+                                <tr class="odd:bg-gray-800 even:bg-gray-850 hover:bg-gray-700/60 transition">
+                                    <td class="px-4 py-2 font-mono text-xs">@g.GameId</td>
+                                    <td class="px-4 py-2">@FormatType(g.GameType)</td>
+                                    <td class="px-4 py-2">@g.RoomCode</td>
+                                    <td class="px-4 py-2">
+                                        <span class="px-2 py-0.5 rounded text-xs @(g.State == "Finished" ? "bg-green-600/30 text-green-300" : "bg-yellow-600/30 text-yellow-200")">
+                                            @g.State
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2 text-right">@g.BetAmount.ToString("N2")</td>
+                                    <td class="px-4 py-2 text-right">
+                                        @if (win)
+                                        {
+                                            <span class="text-green-400 font-semibold">Won @Payout(g).ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-red-400 font-semibold">Lost @g.BetAmount.ToString("N2")</span>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-2 text-center">
+                                        @if (g.IsPrivate)
+                                        {
+                                            <span title="Private" class="text-xs text-blue-300">Yes</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-xs text-gray-400">No</span>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-2 text-xs">@g.CreatedDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-gray-500 mt-3">
+                    NOTE: This page currently uses seeded placeholder data (see LoadDummyGames()). Replace with Hub.GetGame(token).
+                </p>
+            }
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-center text-xs text-gray-400 py-6">
+        &copy; 2025 Ludo Cities Game History
+    </footer>
+</body>
 
 @code {
-    private List<LudoClient.Models.Game>? games;
-    private PlayerInfo playerInfo;
+    private bool _loading = true;
+    private List<LudoClient.Models.Game> _games = new();
+    private int _wins;
+    private int _losses;
+
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            bool isPrivate = false;
-            games = await Hub.GetGame(PlayerState.Player.AuthToken);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching games: {ex.Message}");
-            games = new(); // fallback to empty list on error
-        }
+        // Replace this entire method body with real backend call when ready:
+        // _games = await Hub.GetGame(PlayerState.Player.AuthToken);
+        await LoadDummyGames();
+        ComputeWL();
+        _loading = false;
     }
+
+    private Task LoadDummyGames()
+    {
+        // Seed pattern: varied game types, some wins/losses relative to "current player"
+        var playerId = PlayerState?.Player?.PlayerId ?? 101; // fallback placeholder
+        var now = DateTime.UtcNow;
+
+        _games = new()
+        {
+            new() { GameId = 1001, GameType = "2", RoomCode = "AX4D", BetAmount = 5.00m, Winner1 = playerId, State="Finished", IsPrivate=false, CreatedDate = now.AddMinutes(-35) },
+            new() { GameId = 1002, GameType = "22", RoomCode = "B7KQ", BetAmount = 12.50m, Winner1 = playerId, Winner2 = 502, State="Finished", IsPrivate=true, CreatedDate = now.AddHours(-2) },
+            new() { GameId = 1003, GameType = "3", RoomCode = "K9LM", BetAmount = 3.00m, Winner1 = 404, State="Finished", IsPrivate=false, CreatedDate = now.AddHours(-5) },
+            new() { GameId = 1004, GameType = "4", RoomCode = "Z1Y2", BetAmount = 2.25m, Winner1 = playerId, State="Finished", IsPrivate=false, CreatedDate = now.AddHours(-7) },
+            new() { GameId = 1005, GameType = "2", RoomCode = "QWER", BetAmount = 9.75m, Winner1 = 333, State="Finished", IsPrivate=true, CreatedDate = now.AddHours(-11) },
+            new() { GameId = 1006, GameType = "3", RoomCode = "MNO2", BetAmount = 4.00m, Winner1 = playerId, State="Finished", IsPrivate=false, CreatedDate = now.AddHours(-15) },
+            new() { GameId = 1007, GameType = "22", RoomCode = "PAIR", BetAmount = 6.50m, Winner1 = 777, Winner2 = 888, State="Finished", IsPrivate=false, CreatedDate = now.AddHours(-19) },
+            new() { GameId = 1008, GameType = "4", RoomCode = "CITY", BetAmount = 1.50m, Winner1 = 111, State="Finished", IsPrivate=false, CreatedDate = now.AddDays(-1) },
+            new() { GameId = 1009, GameType = "2", RoomCode = "DUEL", BetAmount = 14.00m, Winner1 = playerId, State="Finished", IsPrivate=false, CreatedDate = now.AddDays(-2) },
+            new() { GameId = 1010, GameType = "3", RoomCode = "TRIO", BetAmount = 8.25m, Winner1 = 222, State="Finished", IsPrivate=true, CreatedDate = now.AddDays(-3) }
+        };
+
+        return Task.CompletedTask;
+    }
+
+    private void ComputeWL()
+    {
+        _wins = _games.Count(IsWin);
+        _losses = _games.Count - _wins;
+    }
+
+    private bool IsWin(LudoClient.Models.Game g)
+    {
+        var pid = PlayerState?.Player?.PlayerId ?? 101;
+        return g.Winner1 == pid || g.Winner2 == pid;
+    }
+
+    private decimal Payout(LudoClient.Models.Game g)
+    {
+        // Mirror logic in original file (multiplying bet by participant count variant)
+        return g.GameType switch
+        {
+            "2" => g.BetAmount * 2,
+            "22" => g.BetAmount * 2,
+            "3" => g.BetAmount * 3,
+            "4" => g.BetAmount * 4,
+            _ => g.BetAmount
+        };
+    }
+
+    private string FormatType(string type) => type switch
+    {
+        "2" => "1 vs 1",
+        "3" => "1 vs 2",
+        "4" => "1 vs 3",
+        "22" => "2 vs 2",
+        _ => "Unknown"
+    };
+
+    private decimal WinRate() => _games.Count == 0 ? 0 : (decimal)_wins / _games.Count * 100m;
 }

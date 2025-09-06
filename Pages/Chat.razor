@@ -1,99 +1,204 @@
 ﻿@page "/chat"
 
-<div class="container-fluid py-3" style="height: calc(100vh - 3.5rem);">
-    <div class="row h-100">
-        <!-- User list sidebar -->
-        <div class="col-12 col-md-3 col-lg-2 border-end px-0" style="background:#f6f6f6; border-radius: 6px 0 0 6px;">
-            <div class="list-group list-group-flush">
-                @foreach (var user in users)
-                {
-                    <button class="list-group-item list-group-item-action @(selectedUser == user ? "active" : "")"
-                            @onclick="() => SelectUser(user)">
-                        <span class="fw-bold">@user.Name</span>
-                    </button>
-                }
+<body class="bg-gray-950 text-white font-sans scroll-smooth">
+    <section class="pt-16 pb-10 bg-gray-900" style="background-image:url('img/header-shape-lobelia.png');">
+        <!-- Header -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">C</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">H</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">A</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">T</span>
+                </span>
+            </h3>
+            <div class="mx-auto mb-6 h-1 w-28 rounded"
+                 style="background:linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
             </div>
+            <p class="text-gray-300 text-sm md:text-base">
+                Direct player messaging (placeholder local data – replace with real-time service).
+            </p>
         </div>
-        <!-- Chat messages and input -->
-        <div class="col px-0 d-flex flex-column" style="background:#fff; border-radius: 0 6px 6px 0;">
-            <div class="flex-grow-1 chat-messages overflow-auto p-3">
-                <h5 class="mb-3 border-bottom pb-2">@selectedUser?.Name ?? "Select a user"</h5>
-                @if (selectedUser != null)
-                {
-                    @foreach (var msg in selectedUser.Messages)
-                    {
-                        <div class="mb-2">
-                            <span class="fw-bold">@msg.User:</span>
-                            <span>@msg.Text</span>
-                            <div class="text-muted" style="font-size:0.8rem;">@msg.Timestamp.ToShortTimeString()</div>
+
+        <!-- Main Chat Layout -->
+        <div class="container mx-auto px-4 max-w-7xl mt-10">
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- User List -->
+                <div class="md:w-64 flex-shrink-0">
+                    <div class="bg-gray-800 rounded shadow flex flex-col h-[560px]">
+                        <div class="px-4 py-3 border-b border-gray-700">
+                            <h4 class="text-sm font-semibold tracking-wide text-gray-300 uppercase">Users</h4>
                         </div>
-                    }
-                }
-                else
-                {
-                    <div class="text-muted mt-5">Please select a user to chat with.</div>
-                }
-            </div>
-            @if (selectedUser != null)
-            {
-                <div class="chat-input-box p-2 border-top">
-                    <EditForm Model="@newMessage" OnValidSubmit="SendMessage">
-                        <div class="input-group">
-                            <InputText class="form-control" @bind-Value="newMessage.Text" placeholder="Type a message..." />
-                            <button type="submit" class="btn btn-primary">Send</button>
+                        <div class="overflow-y-auto flex-1">
+                            @foreach (var user in users)
+                            {
+                                var active = selectedUser == user;
+                                <button type="button"
+                                        class="w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition
+                                                   @(active
+                                                                                            ? "bg-gradient-to-r from-[#EB1026]/70 via-[#00B15A]/70 to-[#00B4E1]/70 text-white font-semibold"
+                                                                                            : "hover:bg-gray-700/60 text-gray-200")"
+                                    @onclick="() => SelectUser(user)">
+                                <span class="w-2 h-2 rounded-full @(active ? "bg-green-300" : "bg-gray-500")"></span>
+                                <span>@user.Name</span>
+                            </button>
+                                                        }
                         </div>
-                    </EditForm>
+                        <div class="px-4 py-2 border-t border-gray-700 text-[10px] text-gray-500">
+                            Placeholder list (static)
+                        </div>
+                    </div>
                 </div>
-            }
+
+                <!-- Chat Panel -->
+                <div class="flex-1 flex flex-col">
+                    <div class="bg-gray-800 rounded shadow flex flex-col h-[560px]">
+                        <!-- Header of conversation -->
+                        <div class="px-5 py-3 border-b border-gray-700 flex items-center justify-between">
+                            <div class="font-semibold text-sm tracking-wide text-gray-200">
+                                @if (selectedUser == null)
+                                {
+                                    <span class="italic text-gray-400">Select a user</span>
+                                }
+                                else
+                                {
+                                    @selectedUser.Name
+                                }
+                            </div>
+                            @if (selectedUser != null)
+                            {
+                                <div class="text-[10px] uppercase tracking-wide text-gray-400">
+                                    @selectedUser.Messages.Count message(s)
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Messages -->
+                        <div class="flex-1 overflow-y-auto px-4 py-4 space-y-4 text-sm">
+                            @if (selectedUser == null)
+                            {
+                                <div class="text-gray-500 text-center mt-10">
+                                    Choose a user from the left to begin chatting.
+                                </div>
+                            }
+                            else
+                            {
+                                @foreach (var msg in selectedUser.Messages.OrderBy(m => m.Timestamp))
+                                {
+                                    var mine = msg.User == "You";
+                                    <div class="flex @(mine ? "justify-end" : "justify-start")">
+                                        <div class="max-w-[70%]">
+                                            <div class="mb-1 text-[10px] uppercase tracking-wide @(mine ? "text-right text-gray-400" : "text-gray-500")">
+                                                @msg.User
+                                                <span class="ml-1 text-[9px] opacity-70">
+                                                    @msg.Timestamp.ToShortTimeString()
+                                                </span>
+                                            </div>
+                                            <div class="rounded px-3 py-2 leading-snug shadow
+                                                                @(mine
+                                                                                                             ? "bg-gradient-to-br from-[#00B15A]/80 to-[#00B4E1]/80 text-white"
+                                                                                                             : "bg-gray-700 text-gray-100")">
+                                        @msg.Text
+                                    </div>
+                                </div>
+                            </div>
+                                                        }
+                            }
+                        </div>
+
+                        <!-- Input -->
+                        @if (selectedUser != null)
+                        {
+                            <div class="border-t border-gray-700 p-3">
+                                <EditForm Model="@newMessage" OnValidSubmit="SendMessage">
+                                    <div class="flex gap-2">
+                                        <InputText class="flex-1 bg-gray-700 text-sm text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00B4E1]/60"
+                                                   @bind-Value="newMessage.Text"
+                                                   placeholder="Type a message..." />
+                                        <button type="submit"
+                                                class="px-5 py-2 rounded text-sm font-semibold bg-gradient-to-r
+                                                           from-[#EB1026] via-[#FDAF00] to-[#00B4E1] text-black hover:opacity-90 transition">
+                                            Send
+                                        </button>
+                                    </div>
+                                </EditForm>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="border-t border-gray-700 p-3 text-center text-xs text-gray-500">
+                                No user selected
+                            </div>
+                        }
+                    </div>
+
+                    <p class="text-xs text-gray-500 mt-3">
+                        NOTE: This chat uses in-memory placeholder data. Replace with a SignalR / WebSocket service for real-time messaging.
+                    </p>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
+    </section>
+
+    <footer class="bg-gray-900 text-center text-xs text-gray-400 py-6">
+        &copy; 2025 Ludo Cities Chat
+    </footer>
+</body>
 
 @code {
     public class ChatUser
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
         public List<ChatMessage> Messages { get; set; } = new();
     }
+
     public class ChatMessage
     {
-        public string User { get; set; }
-        public string Text { get; set; }
+        public string User { get; set; } = "";
+        public string Text { get; set; } = "";
         public DateTime Timestamp { get; set; }
     }
 
-    // Sample users and chat history
-    private List<ChatUser> users = new List<ChatUser>
+    private List<ChatUser> users = new()
     {
         new ChatUser
         {
             Name = "Alice",
-            Messages = new List<ChatMessage>
+            Messages =
             {
-                new ChatMessage { User = "Alice", Text = "Hello!", Timestamp = DateTime.Now.AddMinutes(-3) },
-                new ChatMessage { User = "You", Text = "Hi Alice!", Timestamp = DateTime.Now.AddMinutes(-2) }
+                new ChatMessage { User = "Alice", Text = "Hello!", Timestamp = DateTime.Now.AddMinutes(-12) },
+                new ChatMessage { User = "You", Text = "Hi Alice!", Timestamp = DateTime.Now.AddMinutes(-11) },
+                new ChatMessage { User = "Alice", Text = "Ready for a match?", Timestamp = DateTime.Now.AddMinutes(-10) }
             }
         },
         new ChatUser
         {
             Name = "Bob",
-            Messages = new List<ChatMessage>
+            Messages =
             {
-                new ChatMessage { User = "Bob", Text = "Hi there!", Timestamp = DateTime.Now.AddMinutes(-5) }
+                new ChatMessage { User = "Bob", Text = "Hey there!", Timestamp = DateTime.Now.AddMinutes(-25) }
             }
         },
         new ChatUser
         {
             Name = "Charlie",
-            Messages = new List<ChatMessage>
+            Messages =
             {
-                new ChatMessage { User = "Charlie", Text = "Ready to play?", Timestamp = DateTime.Now.AddMinutes(-7) }
+                new ChatMessage { User = "Charlie", Text = "Need one more player.", Timestamp = DateTime.Now.AddMinutes(-40) }
+            }
+        },
+        new ChatUser
+        {
+            Name = "Dana",
+            Messages =
+            {
+                new ChatMessage { User = "Dana", Text = "Invite sent.", Timestamp = DateTime.Now.AddMinutes(-50) }
             }
         }
     };
 
-    private ChatUser selectedUser;
-    private ChatMessage newMessage = new ChatMessage { User = "You" };
+    private ChatUser? selectedUser;
+    private ChatMessage newMessage = new() { User = "You" };
 
     private void SelectUser(ChatUser user)
     {
@@ -103,16 +208,18 @@
 
     private void SendMessage()
     {
-        if (selectedUser != null && !string.IsNullOrWhiteSpace(newMessage.Text))
+        if (selectedUser is null) return;
+        if (string.IsNullOrWhiteSpace(newMessage.Text)) return;
+
+        newMessage.Timestamp = DateTime.Now;
+        selectedUser.Messages.Add(new ChatMessage
         {
-            newMessage.Timestamp = DateTime.Now;
-            selectedUser.Messages.Add(new ChatMessage
-            {
-                User = newMessage.User,
-                Text = newMessage.Text,
-                Timestamp = newMessage.Timestamp
-            });
-            newMessage.Text = "";
-        }
+            User = newMessage.User,
+            Text = newMessage.Text,
+            Timestamp = newMessage.Timestamp
+        });
+
+        newMessage.Text = "";
+        StateHasChanged();
     }
 }

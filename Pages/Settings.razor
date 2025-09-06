@@ -1,8 +1,394 @@
-﻿@inject PlayerState PlayerState
-@page "/settings"
+﻿@page "/settings"
+@inject PlayerState PlayerState
+@using System.ComponentModel.DataAnnotations
 
-<h3>Settings</h3>
+<body class="bg-gray-950 text-white font-sans scroll-smooth">
+    <section class="pt-16 pb-10 bg-gray-900" style="background-image:url('img/header-shape-lobelia.png');">
+        <!-- Header -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">S</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">E</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">T</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">T</span>
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">I</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">N</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">G</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">S</span>
+                </span>
+            </h3>
+            <div class="mx-auto mb-6 h-1 w-32 rounded"
+                 style="background:linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);"></div>
+            <p class="text-gray-300 text-sm md:text-base">
+                Manage account, profile, preferences, and security (placeholder – no backend persistence yet).
+            </p>
+        </div>
+
+        <div class="container mx-auto px-4 max-w-7xl mt-10">
+            <!-- Summary Tiles -->
+            <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 mb-10">
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Player ID</h4>
+                    <div class="text-2xl font-bold mt-2" style="color:#EB1026;">@_playerId</div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Username</h4>
+                    <div class="text-lg font-semibold mt-2 text-yellow-300 truncate">@_snapshot.Username</div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Email</h4>
+                    <div class="text-xs mt-2">
+                        <span class="px-2 py-0.5 rounded bg-blue-600/30 text-blue-300">@(_snapshot.Email ?? "—")</span>
+                    </div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Phone</h4>
+                    <div class="text-xs mt-2">
+                        <span class="px-2 py-0.5 rounded bg-green-600/30 text-green-300">@(_snapshot.PhoneNumber ?? "—")</span>
+                    </div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Balance</h4>
+                    <div class="text-lg font-bold mt-2 text-green-400">
+                        @(_snapshot.AvailableBalance.ToString("N2")) LUDC
+                    </div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Wallet Linked</h4>
+                    <div class="text-lg font-bold mt-2 @(string.IsNullOrEmpty(_snapshot.WalletAddress) ? "text-red-400" : "text-green-400")">
+                        @(string.IsNullOrEmpty(_snapshot.WalletAddress) ? "No" : "Yes")
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layout: Forms + Side Info -->
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Left Column: Profile -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- Profile / Preferences -->
+                    <div class="bg-gray-800 rounded shadow p-6">
+                        <h4 class="text-lg font-semibold mb-4" style="color:#EB1026;">Profile & Preferences</h4>
+                        <EditForm Model="@_edit" OnValidSubmit="@SaveProfile">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="text-red-400 text-xs mb-4" />
+
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                        Display Name
+                                    </label>
+                                    <InputText @bind-Value="_edit.DisplayName"
+                                               class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FDAF00]/60" />
+                                    <ValidationMessage For="@(() => _edit.DisplayName)" class="text-red-400 text-xs mt-1" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                        Time Zone
+                                    </label>
+                                    <InputSelect @bind-Value="_edit.TimeZone"
+                                                 class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00B4E1]/60">
+                                        @foreach (var tz in _timeZones)
+                                        {
+                                            <option value="@tz">@tz</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                        Phone Number
+                                    </label>
+                                    <InputText @bind-Value="_edit.PhoneNumber"
+                                               class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00B15A]/60" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                        Language
+                                    </label>
+                                    <InputSelect @bind-Value="_edit.Language"
+                                                 class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#EB1026]/60">
+                                        @foreach (var lang in _languages)
+                                        {
+                                            <option>@lang</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 grid md:grid-cols-3 gap-4">
+                                <label class="flex items-start gap-2 text-xs cursor-pointer">
+                                    <InputCheckbox @bind-Value="_edit.NotifyGameStart"
+                                                   class="mt-1 accent-[#00B15A]" />
+                                    <span>
+                                        <span class="font-semibold text-gray-200 block">Game Start Alerts</span>
+                                        <span class="text-gray-400">Email/app alerts when a joined game begins.</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-start gap-2 text-xs cursor-pointer">
+                                    <InputCheckbox @bind-Value="_edit.NotifyRewards"
+                                                   class="mt-1 accent-[#FDAF00]" />
+                                    <span>
+                                        <span class="font-semibold text-gray-200 block">Reward Updates</span>
+                                        <span class="text-gray-400">Claim & bonus notifications.</span>
+                                    </span>
+                                </label>
+                                <label class="flex items-start gap-2 text-xs cursor-pointer">
+                                    <InputCheckbox @bind-Value="_edit.NotifySecurity"
+                                                   class="mt-1 accent-[#EB1026]" />
+                                    <span>
+                                        <span class="font-semibold text-gray-200 block">Security Events</span>
+                                        <span class="text-gray-400">Login & withdrawal alerts.</span>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                                <button type="submit"
+                                        class="flex-1 bg-gradient-to-r from-[#EB1026] via-[#FDAF00] to-[#00B4E1] text-black font-semibold text-sm rounded px-5 py-3 hover:opacity-90 transition">
+                                    Save Changes
+                                </button>
+                                <button type="button"
+                                        class="flex-1 bg-gray-700 hover:bg-gray-600 text-sm rounded px-5 py-3 transition"
+                                        @onclick="ResetProfile">
+                                    Reset
+                                </button>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(_saveMessage))
+                            {
+                                <div class="text-green-400 text-xs font-semibold mt-4">@_saveMessage</div>
+                            }
+                        </EditForm>
+                    </div>
+
+                    <!-- Security -->
+                    <div class="bg-gray-800 rounded shadow p-6">
+                        <h4 class="text-lg font-semibold mb-4" style="color:#00B15A;">Security</h4>
+                        <div class="space-y-5 text-sm">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold">Two-Factor Authentication</div>
+                                    <div class="text-xs text-gray-400">Add an extra layer (placeholder state).</div>
+                                </div>
+                                <button class="px-4 py-2 text-xs font-semibold rounded bg-gray-700 hover:bg-gray-600 transition">
+                                    Configure
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold">Password</div>
+                                    <div class="text-xs text-gray-400">Last changed: —</div>
+                                </div>
+                                <button class="px-4 py-2 text-xs font-semibold rounded bg-gray-700 hover:bg-gray-600 transition">
+                                    Change
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold">Linked Wallet</div>
+                                    <div class="text-xs text-gray-400 truncate max-w-[200px]">
+                                        @(_snapshot.WalletAddress ?? "None Linked")
+                                    </div>
+                                </div>
+                                <button class="px-4 py-2 text-xs font-semibold rounded bg-gray-700 hover:bg-gray-600 transition">
+                                    Manage
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-6">
+                            NOTE: All actions are currently local only.
+                        </p>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div class="bg-gray-800 rounded shadow p-6 border border-red-700/30">
+                        <h4 class="text-lg font-semibold mb-4 text-red-400">Danger Zone</h4>
+                        <div class="space-y-4 text-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold">Clear Local Settings Cache</div>
+                                    <div class="text-xs text-gray-400">Removes unsaved client-side changes.</div>
+                                </div>
+                                <button class="px-4 py-2 text-xs font-semibold rounded bg-gradient-to-r from-[#EB1026] to-[#FDAF00] text-black hover:opacity-90 transition"
+                                        @onclick="ResetProfile">
+                                    Clear
+                                </button>
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold">Request Account Deletion</div>
+                                    <div class="text-xs text-gray-400">Queues removal (not implemented).</div>
+                                </div>
+                                <button class="px-4 py-2 text-xs font-semibold rounded bg-gray-700 hover:bg-gray-600 transition">
+                                    Request
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Activity / Static Info -->
+                <div class="space-y-8">
+                    <div class="bg-gray-800 rounded shadow p-6">
+                        <h4 class="text-lg font-semibold mb-4" style="color:#00B4E1;">Session Snapshot</h4>
+                        <ul class="text-xs space-y-2 text-gray-300">
+                            <li><span class="text-gray-500">Player ID:</span> @_playerId</li>
+                            <li><span class="text-gray-500">Username:</span> @_snapshot.Username</li>
+                            <li><span class="text-gray-500">Email:</span> @_snapshot.Email</li>
+                            <li><span class="text-gray-500">Phone:</span> @_snapshot.PhoneNumber</li>
+                            <li class="truncate"><span class="text-gray-500">Wallet:</span> @_snapshot.WalletAddress</li>
+                            <li><span class="text-gray-500">Balance:</span> @_snapshot.AvailableBalance.ToString("N2") LUDC</li>
+                            <li><span class="text-gray-500">Timezone Pref:</span> @_edit.TimeZone</li>
+                            <li><span class="text-gray-500">Lang:</span> @_edit.Language</li>
+                        </ul>
+                        <p class="text-[10px] text-gray-500 mt-4">
+                            Values refresh if PlayerState is updated externally.
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-800 rounded shadow p-6">
+                        <h4 class="text-lg font-semibold mb-3" style="color:#FDAF00;">Recent Placeholder Events</h4>
+                        <ul class="text-xs space-y-2 text-gray-400">
+                            <li>Profile viewed just now</li>
+                            <li>Password change requested (pending)</li>
+                            <li>Security notification toggled</li>
+                        </ul>
+                        <p class="text-[10px] text-gray-500 mt-4">
+                            Replace with real audit/service feed.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-xs text-gray-500 mt-10">
+                NOTE: This Settings page is fully client-side mock. Wire SaveProfile() to an API to persist changes.
+            </p>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-center text-xs text-gray-400 py-6 mt-10">
+        &copy; 2025 Ludo Cities Settings
+    </footer>
+</body>
 
 @code {
+    private int _playerId;
 
+    // Snapshot of current state (immutable copy for display)
+    private PlayerSnapshot _snapshot = new();
+
+    // Editable model
+    private EditSettingsModel _edit = new();
+
+    private string? _saveMessage;
+
+    private readonly string[] _timeZones = new[]
+    {
+        "UTC","UTC+1","UTC+2","UTC+3","UTC+5","UTC+5:30","UTC+8","UTC-3","UTC-5","UTC-8"
+    };
+
+    private readonly string[] _languages = new[]
+    {
+        "en","es","fr","de","ur","hi","zh"
+    };
+
+    protected override void OnInitialized()
+    {
+        _playerId = PlayerState.Player?.PlayerId ?? 0;
+
+        _snapshot = new PlayerSnapshot
+        {
+            PlayerId = _playerId,
+            Username = PlayerState.Player?.Name ?? "Player",
+            Email = PlayerState.Player?.Email ?? "unknown@example.com",
+            PhoneNumber = PlayerState.Player?.PhoneNumber ?? "",
+            WalletAddress = PlayerState.Player?.Wallet?.WalletAddress ?? "",
+            AvailableBalance = PlayerState.Player?.Wallet?.AvailableBalance ?? 0m
+        };
+
+        _edit = new EditSettingsModel
+        {
+            DisplayName = _snapshot.Username,
+            PhoneNumber = _snapshot.PhoneNumber,
+            TimeZone = "UTC",
+            Language = "en",
+            NotifyGameStart = true,
+            NotifyRewards = true,
+            NotifySecurity = true
+        };
+
+        PlayerState.OnChange += OnPlayerStateChanged;
+    }
+
+    private void OnPlayerStateChanged()
+    {
+        // Refresh snapshot
+        _snapshot = new PlayerSnapshot
+        {
+            PlayerId = PlayerState.Player?.PlayerId ?? _playerId,
+            Username = PlayerState.Player?.Name ?? _snapshot.Username,
+            Email = PlayerState.Player?.Email ?? _snapshot.Email,
+            PhoneNumber = PlayerState.Player?.PhoneNumber ?? _snapshot.PhoneNumber,
+            WalletAddress = PlayerState.Player?.Wallet?.WalletAddress ?? _snapshot.WalletAddress,
+            AvailableBalance = PlayerState.Player?.Wallet?.AvailableBalance ?? _snapshot.AvailableBalance
+        };
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void SaveProfile()
+    {
+        // Simulate local save (no backend persistence yet)
+        _snapshot = _snapshot with
+        {
+            Username = _edit.DisplayName,
+            PhoneNumber = _edit.PhoneNumber
+        };
+        _saveMessage = "Settings saved locally (not persisted).";
+    }
+
+    private void ResetProfile()
+    {
+        _edit.DisplayName = _snapshot.Username;
+        _edit.PhoneNumber = _snapshot.PhoneNumber;
+        _edit.Language = "en";
+        _edit.TimeZone = "UTC";
+        _edit.NotifyGameStart = true;
+        _edit.NotifyRewards = true;
+        _edit.NotifySecurity = true;
+        _saveMessage = null;
+    }
+
+    public void Dispose()
+    {
+        PlayerState.OnChange -= OnPlayerStateChanged;
+    }
+
+    private sealed record PlayerSnapshot
+    {
+        public int PlayerId { get; init; }
+        public string? Username { get; init; }
+        public string? Email { get; init; }
+        public string? PhoneNumber { get; init; }
+        public string? WalletAddress { get; init; }
+        public decimal AvailableBalance { get; init; }
+    }
+
+    private sealed class EditSettingsModel
+    {
+        [Required, StringLength(40)]
+        public string? DisplayName { get; set; }
+
+        [StringLength(32)]
+        public string? PhoneNumber { get; set; }
+
+        [Required]
+        public string TimeZone { get; set; } = "UTC";
+
+        [Required]
+        public string Language { get; set; } = "en";
+
+        public bool NotifyGameStart { get; set; }
+        public bool NotifyRewards { get; set; }
+        public bool NotifySecurity { get; set; }
+    }
 }

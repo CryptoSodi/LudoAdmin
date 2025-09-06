@@ -4,183 +4,289 @@
 @inject HttpClient Http
 @using System.ComponentModel.DataAnnotations
 
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-6">
-            <div class="card shadow-lg">
-                <div class="card-body">
-                    <h4 class="card-title text-center mb-4">WITHDRAW</h4>
+<body class="bg-gray-950 text-white font-sans scroll-smooth">
+    <section class="pt-16 pb-10 bg-gray-900" style="background-image:url('img/header-shape-lobelia.png');">
+        <!-- Header -->
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">W</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">I</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">T</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">H</span>
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">D</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">R</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">A</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">W</span>
+                </span>
+            </h3>
+            <div class="mx-auto mb-6 h-1 w-32 rounded"
+                 style="background:linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);"></div>
+            <p class="text-gray-300 text-sm md:text-base">
+                Convert your in-game LUDC to external assets or local payment channels (demo flow – OTP simulated).
+            </p>
+        </div>
 
-                    <!-- BALANCE -->
-                    <div class="d-flex align-items-center justify-content-between bg-light rounded p-3 mb-4">
-                        <div>
-                            <div class="small text-muted">TOTAL BALANCE AVAILABLE</div>
-                            <div class="fw-bold">@totalBalance.ToString("0.00") LUDC</div>
-                        </div>
-                        <img src="solicon.webp" alt="Sol Icon" style="width:32px;height:32px;" />
+        <div class="container mx-auto px-4 max-w-5xl mt-10">
+            <!-- Summary Tiles -->
+            <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-4 mb-10">
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Available Balance</h4>
+                    <div class="text-3xl font-bold mt-2" style="color:#EB1026;">@totalBalance.ToString("N2")</div>
+                    <div class="text-xs text-gray-400 mt-1">LUDC</div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Gateway</h4>
+                    <div class="text-2xl font-bold mt-2" style="color:#00B15A;">
+                        @(string.IsNullOrEmpty(withdrawModel.Gateway) ? "—" : withdrawModel.Gateway)
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1">Selection</div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Entered Amount</h4>
+                    <div class="text-2xl font-bold mt-2 text-yellow-300">
+                        @(withdrawModel.Amount > 0 ? withdrawModel.Amount.ToString("0.##") : "0")
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1">LUDC</div>
+                </div>
+                <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                    <h4 class="text-xs font-semibold tracking-wide text-gray-400 uppercase">Approx Output</h4>
+                    <div class="text-sm font-semibold mt-2 text-green-400 truncate">
+                        @GetReverseConversion()
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">Indicative</div>
+                </div>
+            </div>
+
+            <!-- Withdraw Form Card -->
+            <div class="bg-gray-800 rounded shadow p-6">
+                <EditForm Model="@withdrawModel" OnValidSubmit="HandleWithdraw">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-red-400 text-xs mb-4 space-y-1" />
+
+                    <!-- Gateway -->
+                    <div class="mb-5">
+                        <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                            Payment Gateway
+                        </label>
+                        <InputSelect class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00B4E1]/60"
+                                     @bind-Value="withdrawModel.Gateway" @onchange="GatewayChanged">
+                            @foreach (var g in gatewayOptions)
+                            {
+                                <option value="@g">@g</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => withdrawModel.Gateway)" class="text-red-400 text-xs mt-1" />
                     </div>
 
-                    <EditForm Model="@withdrawModel" OnValidSubmit="HandleWithdraw">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
-
-                        <div class="mb-3">
-                            <label for="gateway" class="form-label">Payment Gateway</label>
-                            <InputSelect id="gateway" class="form-control" @bind-Value="withdrawModel.Gateway" @onchange="GatewayChanged">
-                                @foreach (var gateway in gatewayOptions)
-                                {
-                                    <option value="@gateway">@gateway</option>
-                                }
-                            </InputSelect>
-                            <ValidationMessage For="@(() => withdrawModel.Gateway)" />
-                        </div>
-
-                        @if (!string.IsNullOrEmpty(withdrawModel.Gateway))
+                    @if (!string.IsNullOrEmpty(withdrawModel.Gateway))
+                    {
+                        @if (withdrawModel.Gateway is "SOLANA" or "USDC")
                         {
-                            @if (withdrawModel.Gateway == "SOLANA" || withdrawModel.Gateway == "USDC")
-                            {
-                                <div class="mb-3">
-                                    <label for="address" class="form-label">@withdrawModel.Gateway Address</label>
-                                    <InputText id="address" class="form-control" @bind-Value="withdrawModel.Address" />
-                                    <ValidationMessage For="@(() => withdrawModel.Address)" />
-                                    <div class="small text-muted mb-2">
-                                        Enter your Solana wallet address (32–44 chars, Base58).
-                                    </div>
+                            <div class="mb-5">
+                                <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                    @(withdrawModel.Gateway) Address
+                                </label>
+                                <InputText @bind-Value="withdrawModel.Address"
+                                           class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 font-mono focus:outline-none focus:ring-2 focus:ring-[#EB1026]/60" />
+                                <ValidationMessage For="@(() => withdrawModel.Address)" class="text-red-400 text-xs mt-1" />
+                                <div class="text-[11px] text-gray-400 mt-2">
+                                    Enter a valid Base58 Solana address (32–44 chars).
                                 </div>
-                            }
-                            else if (withdrawModel.Gateway == "JazzCash" || withdrawModel.Gateway == "EasyPaisa" || withdrawModel.Gateway == "Paytm")
-                            {
-                                <div class="mb-3">
-                                    <label for="mobile" class="form-label">@withdrawModel.Gateway Mobile Number</label>
-                                    <InputText id="mobile" class="form-control" @bind-Value="withdrawModel.Address" />
-                                    <ValidationMessage For="@(() => withdrawModel.Address)" />
-                                </div>
-                            }
-
-                            <div class="mb-3">
-                                <label for="amount" class="form-label">@withdrawModel.Gateway Amount (LUDC)</label>
-                                <InputNumber id="amount" class="form-control" @bind-Value="withdrawModel.Amount" />
-                                <ValidationMessage For="@(() => withdrawModel.Amount)" />
                             </div>
-
-                            <div class="mb-2 small text-muted">
-                                @GetReverseConversion()
+                        }
+                        else if (withdrawModel.Gateway is "JazzCash" or "EasyPaisa" or "Paytm")
+                        {
+                            <div class="mb-5">
+                                <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                    @(withdrawModel.Gateway) Mobile Number
+                                </label>
+                                <InputText @bind-Value="withdrawModel.Address"
+                                           class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FDAF00]/60" />
+                                <ValidationMessage For="@(() => withdrawModel.Address)" class="text-red-400 text-xs mt-1" />
                             </div>
                         }
 
-                        <div class="d-flex justify-content-between">
-                            @if (withdrawModel.Gateway == "SOLANA" || withdrawModel.Gateway == "USDC")
-                            {
-                                <button type="button" class="btn btn-secondary me-2" @onclick="PasteAddressAsync">PASTE ADDRESS</button>
-                            }
-                            <button type="submit" class="btn btn-warning" disabled="@(!CanWithdraw)">SEND</button>
+                        <div class="mb-5">
+                            <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                Amount (LUDC)
+                            </label>
+                            <InputNumber @bind-Value="withdrawModel.Amount"
+                                         class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00B15A]/60" />
+                            <ValidationMessage For="@(() => withdrawModel.Amount)" class="text-red-400 text-xs mt-1" />
+                            <div class="text-[11px] text-gray-400 mt-2">
+                                @GetReverseConversion()
+                            </div>
                         </div>
-                    </EditForm>
+                    }
+
+                    <div class="flex flex-col sm:flex-row gap-3 mt-2">
+                        @if (withdrawModel.Gateway is "SOLANA" or "USDC")
+                        {
+                            <button type="button"
+                                    class="flex-1 bg-gradient-to-r from-[#FDAF00] to-[#EB1026] text-black font-semibold text-sm rounded px-4 py-2 hover:opacity-90 transition"
+                                    @onclick="PasteAddressAsync">
+                                Paste Address
+                            </button>
+                        }
+                        <button type="submit"
+                                disabled="@(!CanWithdraw)"
+                                class="flex-1 disabled:opacity-40 disabled:cursor-not-allowed bg-gradient-to-r from-[#00B15A] to-[#00B4E1] text-black font-semibold text-sm rounded px-4 py-2 hover:opacity-90 transition">
+                            Continue
+                        </button>
+                    </div>
+
+                    @if (copySuccess)
+                    {
+                        <div class="text-green-400 text-xs font-semibold mt-3">
+                            Address pasted from clipboard.
+                        </div>
+                    }
 
                     @if (successMessage != null)
                     {
-                        <div class="alert alert-success mt-3">@successMessage</div>
+                        <div class="mt-6 bg-green-700/30 border border-green-600/50 rounded px-4 py-3 text-sm text-green-300">
+                            @successMessage
+                        </div>
                     }
-                    @if (copySuccess)
-                    {
-                        <div class="text-success text-center mt-2">Address pasted!</div>
-                    }
-                </div>
+                </EditForm>
+
+                <p class="text-xs text-gray-500 mt-6">
+                    NOTE: Rates derived from Coingecko (demo). Replace FetchRates() with backend oracle / caching.
+                </p>
             </div>
         </div>
-    </div>
-</div>
+    </section>
 
-<!-- OTP MODAL -->
-@if (showOtpModal)
-{
-    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Withdraw Confirmation</h5>
-                    <button type="button" class="btn-close" @onclick="CloseOtpModal"></button>
+    <footer class="bg-gray-900 text-center text-xs text-gray-400 py-6 mt-10">
+        &copy; 2025 Ludo Cities Withdraw
+    </footer>
+
+    @if (showOtpModal)
+    {
+        <!-- OTP Modal -->
+        <div class="fixed inset-0 z-40 flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/70"></div>
+            <div class="relative z-50 w-full max-w-md bg-gray-800 rounded shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-lg font-semibold tracking-wide" style="color:#EB1026;">Withdraw Confirmation</h4>
+                    <button class="text-gray-400 hover:text-white text-sm" @onclick="CloseOtpModal">✕</button>
                 </div>
-                <div class="modal-body">
-                    @if (withdrawModel.Gateway == "JazzCash" || withdrawModel.Gateway == "EasyPaisa" || withdrawModel.Gateway == "Paytm")
-                    {
-                        <EditForm Model="@otpModel" OnValidSubmit="HandleOtpSubmit">
-                            <DataAnnotationsValidator />
-                            <ValidationSummary />
 
-                            @if (string.IsNullOrWhiteSpace(UserPhone) || UserPhone == "###########")
-                            {
-                                <div class="mb-3">
-                                    <label for="number" class="form-label">Enter your mobile number</label>
-                                    <InputText id="number" class="form-control" @bind-Value="otpModel.Number" maxlength="15" />
-                                    <ValidationMessage For="@(() => otpModel.Number)" />
-                                </div>
-                                <button type="button" class="btn btn-secondary mb-2 w-100" @onclick="SendOtpToNumber" disabled="@otpSent">Send OTP</button>
-                            }
-                            else
-                            {
-                                <div class="mb-3">
-                                    <label class="form-label">OTP will be sent to:</label>
-                                    <div class="fw-bold mb-2">@UserPhone</div>
-                                    <button type="button" class="btn btn-secondary mb-2 w-100" @onclick="SendOtpToNumber" disabled="@otpSent">Send OTP</button>
-                                </div>
-                            }
+                @if (withdrawModel.Gateway is "JazzCash" or "EasyPaisa" or "Paytm")
+                {
+                    <EditForm Model="@otpModel" OnValidSubmit="HandleOtpSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-red-400 text-xs mb-2" />
 
-                            @if (otpSent)
-                            {
-                                <div class="mb-3">
-                                    <label for="otp" class="form-label">Enter OTP</label>
-                                    <InputText id="otp" class="form-control" @bind-Value="otpModel.Otp" maxlength="6" />
-                                    <ValidationMessage For="@(() => otpModel.Otp)" />
-                                </div>
-                                @if (!string.IsNullOrEmpty(otpError))
-                                {
-                                    <div class="alert alert-danger py-1">@otpError</div>
-                                }
-                                <button type="submit" class="btn btn-primary w-100">Confirm Withdrawal</button>
-                            }
-                        </EditForm>
-                    }
-                    else
-                    {
-                        <EditForm Model="@otpModel" OnValidSubmit="HandleOtpSubmit">
-                            <DataAnnotationsValidator />
-                            <ValidationSummary />
-                            <div class="mb-3">
-                                <label for="otp" class="form-label">Enter the OTP sent to your email/phone</label>
-                                <InputText id="otp" class="form-control" @bind-Value="otpModel.Otp" maxlength="6" />
-                                <ValidationMessage For="@(() => otpModel.Otp)" />
+                        @if (string.IsNullOrWhiteSpace(UserPhone) || UserPhone == "###########")
+                        {
+                            <div class="mb-4">
+                                <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                    Mobile Number
+                                </label>
+                                <InputText @bind-Value="otpModel.Number"
+                                           maxlength="15"
+                                           class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FDAF00]/60" />
+                                <ValidationMessage For="@(() => otpModel.Number)" class="text-red-400 text-xs mt-1" />
+                            </div>
+                            <button type="button"
+                                    class="w-full mb-4 bg-gradient-to-r from-[#FDAF00] to-[#EB1026] text-black font-semibold text-sm rounded px-4 py-2 hover:opacity-90 transition disabled:opacity-40"
+                                    disabled="@otpSent"
+                                    @onclick="SendOtpToNumber">
+                                @(otpSent ? "OTP Sent" : "Send OTP")
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="mb-4 text-sm text-gray-300">
+                                OTP will be sent to:
+                                <span class="font-semibold text-white">@UserPhone</span>
+                            </div>
+                            <button type="button"
+                                    class="w-full mb-4 bg-gradient-to-r from-[#FDAF00] to-[#EB1026] text-black font-semibold text-sm rounded px-4 py-2 hover:opacity-90 transition disabled:opacity-40"
+                                    disabled="@otpSent"
+                                    @onclick="SendOtpToNumber">
+                                @(otpSent ? "OTP Sent" : "Send OTP")
+                            </button>
+                        }
+
+                        @if (otpSent)
+                        {
+                            <div class="mb-4">
+                                <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                    Enter OTP
+                                </label>
+                                <InputText @bind-Value="otpModel.Otp"
+                                           maxlength="6"
+                                           class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-[#00B4E1]/60" />
+                                <ValidationMessage For="@(() => otpModel.Otp)" class="text-red-400 text-xs mt-1" />
                             </div>
                             @if (!string.IsNullOrEmpty(otpError))
                             {
-                                <div class="alert alert-danger py-1">@otpError</div>
+                                <div class="bg-red-700/40 border border-red-600/40 text-red-300 text-xs rounded px-3 py-2 mb-3">
+                                    @otpError
+                                </div>
                             }
-                            <button type="submit" class="btn btn-primary w-100">Confirm Withdrawal</button>
-                        </EditForm>
-                    }
-                </div>
+                            <button type="submit"
+                                    class="w-full bg-gradient-to-r from-[#00B15A] to-[#00B4E1] text-black font-semibold text-sm rounded px-5 py-2 hover:opacity-90 transition">
+                                Confirm Withdrawal
+                            </button>
+                        }
+                    </EditForm>
+                }
+                else
+                {
+                    <EditForm Model="@otpModel" OnValidSubmit="HandleOtpSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-red-400 text-xs mb-2" />
+                        <div class="mb-5">
+                            <label class="block text-xs font-semibold tracking-wide text-gray-300 uppercase mb-2">
+                                Enter OTP (email/phone)
+                            </label>
+                            <InputText @bind-Value="otpModel.Otp"
+                                       maxlength="6"
+                                       class="w-full bg-gray-700 text-white text-sm rounded px-3 py-2 tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-[#EB1026]/60" />
+                            <ValidationMessage For="@(() => otpModel.Otp)" class="text-red-400 text-xs mt-1" />
+                        </div>
+                        @if (!string.IsNullOrEmpty(otpError))
+                        {
+                            <div class="bg-red-700/40 border border-red-600/40 text-red-300 text-xs rounded px-3 py-2 mb-3">
+                                @otpError
+                            </div>
+                        }
+                        <div class="flex gap-3">
+                            <button type="button"
+                                    class="flex-1 bg-gray-700 text-gray-200 text-sm rounded px-4 py-2 hover:bg-gray-600 transition"
+                                    @onclick="SendOtpToNumber">
+                                Send OTP
+                            </button>
+                            <button type="submit"
+                                    class="flex-1 bg-gradient-to-r from-[#00B15A] to-[#00B4E1] text-black font-semibold text-sm rounded px-4 py-2 hover:opacity-90 transition">
+                                Confirm
+                            </button>
+                        </div>
+                    </EditForm>
+                }
             </div>
         </div>
-    </div>
-}
+    }
+</body>
 
 @code {
     private decimal totalBalance = 0.0m;
-    private WithdrawModel withdrawModel = new() { Gateway = "SOLANA" }; // Default to SOLANA
+    private WithdrawModel withdrawModel = new() { Gateway = "SOLANA" };
     private string? successMessage;
     private bool copySuccess;
-    private bool showOtpModal = false;
+    private bool showOtpModal;
 
     private OtpModel otpModel = new();
     private string? otpError;
-    private bool otpSent = false;
+    private bool otpSent;
 
-    private List<string> gatewayOptions = new()
-    {
-        "SOLANA", "USDC", "JazzCash", "EasyPaisa", "Paytm"
-    };
+    private List<string> gatewayOptions = new() { "SOLANA", "USDC", "JazzCash", "EasyPaisa", "Paytm" };
 
-    // Dynamic rates
+    // Rates
     private decimal UsdcToPkrRate = 285m;
     private decimal UsdcToInrRate = 83m;
     private decimal SolToUsdRate = 140m;
@@ -191,11 +297,10 @@
         totalBalance = PlayerState.Player?.Wallet?.AvailableBalance ?? 0.0m;
         try
         {
+            // Pre-fill address if Phantom available
             withdrawModel.Address = await JS.InvokeAsync<string>("walletInterop.connectPhantom");
         }
-        catch
-        {
-        }
+        catch { /* ignore */ }
 
         await FetchRates();
     }
@@ -233,13 +338,13 @@
         [Range(0.0001, double.MaxValue, ErrorMessage = "Amount must be positive.")]
         public decimal Amount { get; set; }
 
-        [Required(ErrorMessage = "Address is required.")]
+        [Required(ErrorMessage = "Address/Number is required.")]
         public string? Address { get; set; }
 
-        [Required(ErrorMessage = "Please select a gateway.")]
+        [Required(ErrorMessage = "Gateway is required.")]
         public string? Gateway { get; set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        public IEnumerable<ValidationResult> Validate(ValidationContext context)
         {
             if ((Gateway == "SOLANA" || Gateway == "USDC") && !string.IsNullOrWhiteSpace(Address))
             {
@@ -250,7 +355,6 @@
 
         private static bool IsValidSolanaAddress(string address)
         {
-            // Solana address: base58, 32-44 chars, no 0/O/I/l
             if (string.IsNullOrWhiteSpace(address)) return false;
             if (address.Length < 32 || address.Length > 44) return false;
             const string base58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -263,8 +367,8 @@
         [StringLength(15, ErrorMessage = "Invalid number.")]
         public string? Number { get; set; }
 
-        [Required(ErrorMessage = "OTP is required.")]
-        [StringLength(6, ErrorMessage = "OTP must be 6 digits.")]
+        [Required(ErrorMessage = "OTP required.")]
+        [StringLength(6, ErrorMessage = "OTP must be 6 chars.")]
         public string? Otp { get; set; }
     }
 
@@ -278,18 +382,15 @@
                 withdrawModel.Address = text;
                 copySuccess = true;
                 StateHasChanged();
-                await Task.Delay(1000);
+                await Task.Delay(1100);
                 copySuccess = false;
                 StateHasChanged();
             }
         }
-        catch
-        {
-            // Clipboard permission denied or not available
-        }
+        catch { }
     }
 
-    // Conversion logic
+    // Derived conversion values
     private decimal LUDCAmount => withdrawModel.Amount;
     private decimal UsdcAmount => LUDCAmount / LudcToUsdcRate;
     private decimal SolAmount => SolToUsdRate > 0 ? UsdcAmount / SolToUsdRate : 0;
@@ -298,13 +399,13 @@
 
     private string GetReverseConversion()
     {
-        if (withdrawModel.Amount <= 0) return string.Empty;
+        if (withdrawModel.Amount <= 0 || string.IsNullOrEmpty(withdrawModel.Gateway)) return "";
         return withdrawModel.Gateway switch
         {
-            "SOLANA" => $"{LUDCAmount} LUDC = {SolAmount:0.####} SOL (1 SOL = {SolToUsdRate} USDC)",
-            "USDC" => $"{LUDCAmount} LUDC = {UsdcAmount:0.####} USDC",
-            "JazzCash" or "EasyPaisa" => $"{LUDCAmount} LUDC = {PkrAmount:0.##} PKR (1 USDC ≈ {UsdcToPkrRate} PKR)",
-            "Paytm" => $"{LUDCAmount} LUDC = {InrAmount:0.##} INR (1 USDC ≈ {UsdcToInrRate} INR)",
+            "SOLANA" => $"{LUDCAmount} LUDC ≈ {SolAmount:0.####} SOL (1 SOL ≈ {SolToUsdRate} USDC)",
+            "USDC" => $"{LUDCAmount} LUDC ≈ {UsdcAmount:0.####} USDC",
+            "JazzCash" or "EasyPaisa" => $"{LUDCAmount} LUDC ≈ {PkrAmount:0.##} PKR (1 USDC ≈ {UsdcToPkrRate} PKR)",
+            "Paytm" => $"{LUDCAmount} LUDC ≈ {InrAmount:0.##} INR (1 USDC ≈ {UsdcToInrRate} INR)",
             _ => ""
         };
     }
@@ -324,8 +425,7 @@
         otpError = null;
         otpSent = false;
 
-        // If user has a phone number in their profile, use it, else ask for input in modal
-        if ((withdrawModel.Gateway == "JazzCash" || withdrawModel.Gateway == "EasyPaisa" || withdrawModel.Gateway == "Paytm") &&
+        if ((withdrawModel.Gateway is "JazzCash" or "EasyPaisa" or "Paytm") &&
             (!string.IsNullOrWhiteSpace(UserPhone) && UserPhone != "###########"))
         {
             otpModel = new OtpModel { Number = UserPhone };
@@ -337,6 +437,7 @@
 
         showOtpModal = true;
         StateHasChanged();
+        await Task.CompletedTask;
     }
 
     private async Task SendOtpToNumber()
@@ -347,7 +448,7 @@
 
         if (string.IsNullOrWhiteSpace(numberToSend))
         {
-            otpError = "Please enter a valid phone number first.";
+            otpError = "Enter a valid number first.";
             return;
         }
 
@@ -359,7 +460,7 @@
         }
         else
         {
-            otpError = "Failed to send OTP. Please try again.";
+            otpError = "Failed to send OTP.";
         }
     }
 
@@ -370,14 +471,14 @@
         if (confirmed)
         {
             showOtpModal = false;
-            successMessage = $"Withdrawal of {withdrawModel.Amount} via {withdrawModel.Gateway} submitted!";
-            withdrawModel = new WithdrawModel() { Gateway = "SOLANA" };
+            successMessage = $"Withdrawal {withdrawModel.Amount} LUDC via {withdrawModel.Gateway} submitted.";
+            withdrawModel = new WithdrawModel { Gateway = "SOLANA" };
             otpSent = false;
             otpModel = new OtpModel();
         }
         else
         {
-            otpError = "Invalid OTP. Please try again.";
+            otpError = "Invalid OTP.";
         }
     }
 
@@ -385,17 +486,18 @@
     {
         showOtpModal = false;
         otpSent = false;
+        otpError = null;
     }
 
     private async Task<bool> SendOtpRequestAsync(WithdrawModel model, string? number = null)
     {
-        await Task.Delay(500); // Simulate API call
+        await Task.Delay(400);
         return true;
     }
 
     private async Task<bool> ConfirmOtpAsync(WithdrawModel model, string? otp)
     {
-        await Task.Delay(500); // Simulate API call
-        return otp == "123456"; // Accept only 123456 as demo OTP
+        await Task.Delay(400);
+        return otp == "123456";
     }
 }

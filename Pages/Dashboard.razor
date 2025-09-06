@@ -1,6 +1,261 @@
 ﻿@page "/dashboard"
-<h3>Dashboard</h3>
+@inject IJSRuntime JS
+
+<body class="bg-gray-950 text-white font-sans scroll-smooth">
+    <section class="pt-16 pb-10 bg-gray-900" style="background-image: url('img/header-shape-lobelia.png');">
+        <div class="container mx-auto px-4 max-w-3xl text-center">
+            <h3 class="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">
+                <span class="whitespace-nowrap">
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">D</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">A</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">S</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">H</span>
+                    <span style="-webkit-text-stroke:1px black; color:#EB1026;">B</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B15A;">O</span>
+                    <span style="-webkit-text-stroke:1px black; color:#FDAF00;">A</span>
+                    <span style="-webkit-text-stroke:1px black; color:#00B4E1;">R</span>
+                    <span style="color: whitesmoke;">D</span>
+                </span>
+            </h3>
+            <div class="mx-auto mb-8 h-1 w-28 rounded"
+                 style="background: linear-gradient(90deg,#EB1026 0 25%,#00B15A 25% 50%,#FDAF00 50% 75%,#00B4E1 75% 100%);">
+            </div>
+            <p class="text-gray-300 text-sm md:text-base">
+                Live ecosystem overview: gameplay, players, NFTs, and on-chain / in-game economic activity.
+            </p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="container mx-auto px-4 max-w-6xl mt-10">
+            @if (_loading)
+            {
+                <div class="text-center py-20 text-gray-300">Loading dashboard...</div>
+            }
+            else
+            {
+                <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-sm font-semibold tracking-wide text-gray-400 uppercase">Total Games</h4>
+                        <div class="text-3xl font-bold mt-2" style="color:#EB1026;">@_stats.TotalGames</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-sm font-semibold tracking-wide text-gray-400 uppercase">Total Players</h4>
+                        <div class="text-3xl font-bold mt-2" style="color:#00B15A;">@_stats.TotalPlayers</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-sm font-semibold tracking-wide text-gray-400 uppercase">Total NFTs</h4>
+                        <div class="text-3xl font-bold mt-2" style="color:#FDAF00;">@_stats.TotalNfts</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-sm font-semibold tracking-wide text-gray-400 uppercase">Players In NFTs</h4>
+                        <div class="text-3xl font-bold mt-2" style="color:#00B4E1;">@_stats.TotalPlayersAcrossNfts</div>
+                        <div class="text-xs text-gray-400 mt-1">Sum of active NFT player participation</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-sm font-semibold tracking-wide text-gray-400 uppercase">NFT Trade Volume</h4>
+                        <div class="text-2xl font-bold mt-2 text-green-400">@_stats.TotalNftTradeVolume.ToString("N2")</div>
+                        <div class="text-xs text-gray-400 mt-1">All NFTs (net)</div>
+                    </div>
+                    <div class="bg-gray-800 p-5 rounded shadow hover:shadow-xl transition">
+                        <h4 class="text-sm font-semibold tracking-wide text-gray-400 uppercase">Total Net Volume</h4>
+                        <div class="text-2xl font-bold mt-2 text-purple-300">@_stats.TotalNetTransactionVolume.ToString("N2")</div>
+                        <div class="text-xs text-gray-400 mt-1">Gameplay + Marketplace</div>
+                    </div>
+                </div>
+
+                <!-- NFT Breakdown -->
+                <div class="mt-12 grid md:grid-cols-2 gap-10">
+                    <div class="bg-gray-800 p-6 rounded shadow">
+                        <h4 class="text-lg font-semibold mb-2 text-blue-300">Players Per NFT</h4>
+                        <canvas id="playersPerNftChart" style="max-height:320px;width:100%;"></canvas>
+                        <ul class="mt-4 space-y-1 text-sm text-gray-300">
+                            @foreach (var n in _nftStats)
+                            {
+                                <li>
+                                    <span class="font-semibold text-white">@n.Name:</span>
+                                    @n.ActivePlayers players
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="bg-gray-800 p-6 rounded shadow">
+                        <h4 class="text-lg font-semibold mb-2 text-yellow-300">Trade Volume Per NFT</h4>
+                        <canvas id="volumePerNftChart" style="max-height:320px;width:100%;"></canvas>
+                        <ul class="mt-4 space-y-1 text-sm text-gray-300">
+                            @foreach (var n in _nftStats)
+                            {
+                                <li>
+                                    <span class="font-semibold text-white">@n.Name:</span>
+                                    @n.TradeVolume.ToString("N2") volume
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Raw Activity Table -->
+                <div class="mt-12">
+                    <h4 class="text-xl font-semibold mb-4" style="color:#EB1026;">NFT Activity Detail</h4>
+                    <div class="overflow-x-auto rounded border border-gray-700">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-gray-700 text-gray-200 uppercase text-xs tracking-wide">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">NFT</th>
+                                    <th class="px-4 py-2 text-right">Active Players</th>
+                                    <th class="px-4 py-2 text-right">Trade Volume</th>
+                                    <th class="px-4 py-2 text-right">Share %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var n in _nftStats)
+                                {
+                                    var share = _stats.TotalNftTradeVolume == 0 ? 0 : (n.TradeVolume / _stats.TotalNftTradeVolume * 100m);
+                                    <tr class="odd:bg-gray-800 even:bg-gray-850">
+                                        <td class="px-4 py-2 font-semibold">@n.Name</td>
+                                        <td class="px-4 py-2 text-right">@n.ActivePlayers</td>
+                                        <td class="px-4 py-2 text-right">@n.TradeVolume.ToString("N2")</td>
+                                        <td class="px-4 py-2 text-right">@share.ToString("N2")%</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        NOTE: Data currently uses placeholder seed values. Replace LoadStats() with real service integration.
+                    </p>
+                </div>
+            }
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-center text-xs text-gray-400 py-6">
+        &copy; 2025 Ludo Cities Dashboard
+    </footer>
+
+    <script>
+        window.initDashboard = (playersPerNft, volumePerNft, labels) => {
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js not loaded');
+                return;
+            }
+            const palette = ['#EB1026', '#00B15A', '#FDAF00', '#00B4E1', '#9c27b0', '#ff9800', '#4caf50'];
+            const ctx1 = document.getElementById('playersPerNftChart');
+            if (ctx1) {
+                new Chart(ctx1.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Players',
+                            data: playersPerNft,
+                            backgroundColor: palette.slice(0, playersPerNft.length)
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#d1d5db' } },
+                            y: { ticks: { color: '#d1d5db' }, beginAtZero: true }
+                        }
+                    }
+                });
+            }
+            const ctx2 = document.getElementById('volumePerNftChart');
+            if (ctx2) {
+                new Chart(ctx2.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Volume',
+                            data: volumePerNft,
+                            backgroundColor: palette.slice(0, volumePerNft.length).map(c => c + 'CC')
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#d1d5db' } },
+                            y: {
+                                ticks: {
+                                    color: '#d1d5db',
+                                    callback: (val) => Intl.NumberFormat('en', { notation: 'compact' }).format(val)
+                                },
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        };
+    </script>
+</body>
 
 @code {
+    private bool _loading = true;
 
+    private DashboardStats _stats = new();
+    private List<NftStat> _nftStats = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TODO: Replace with real service integration
+        await LoadStats();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_loading)
+        {
+            await PushCharts();
+        }
+    }
+
+    private async Task LoadStats()
+    {
+        // Seed placeholder data (replace with backend call)
+        _nftStats = new()
+        {
+            new NftStat("Mumbai", 120, 3400.25m),
+            new NftStat("Karachi", 95, 2800.75m),
+            new NftStat("London", 60, 1500.50m),
+            new NftStat("Paris", 48, 1100.10m),
+            new NftStat("New York", 32, 900.40m)
+        };
+
+        _stats = new DashboardStats
+        {
+            TotalGames = 5421,                 // placeholder
+            TotalPlayers = 1875,               // placeholder
+            TotalNfts = _nftStats.Count,
+            TotalPlayersAcrossNfts = _nftStats.Sum(n => n.ActivePlayers),
+            TotalNftTradeVolume = _nftStats.Sum(n => n.TradeVolume),
+            TotalNetTransactionVolume = _nftStats.Sum(n => n.TradeVolume) + 12500.75m // placeholder additive
+        };
+
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task PushCharts()
+    {
+        var labels = _nftStats.Select(n => n.Name).ToArray();
+        var players = _nftStats.Select(n => n.ActivePlayers).ToArray();
+        var volumes = _nftStats.Select(n => (double)n.TradeVolume).ToArray();
+        await JS.InvokeVoidAsync("initDashboard", players, volumes, labels);
+    }
+
+    private sealed record NftStat(string Name, int ActivePlayers, decimal TradeVolume);
+
+    private sealed class DashboardStats
+    {
+        public int TotalGames { get; set; }
+        public int TotalPlayers { get; set; }
+        public int TotalNfts { get; set; }
+        public int TotalPlayersAcrossNfts { get; set; }
+        public decimal TotalNftTradeVolume { get; set; }
+        public decimal TotalNetTransactionVolume { get; set; }
+    }
 }
