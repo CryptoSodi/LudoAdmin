@@ -18,7 +18,17 @@
       }
     }
 </script>
-@if (!Nav.Uri.Contains("login")){
+@if(Nav.Uri.Contains("auth-callback"))
+{
+    <div class="page">        
+        <main>
+            <article class="content p-0 ">
+                @Body
+            </article>
+        </main>
+    </div>
+}else
+    if (!Nav.Uri.Contains("login")){
     <div class="page">
         @if (!Nav.Uri.EndsWith("/") && !Nav.Uri.Contains("#"))
         {
@@ -78,7 +88,6 @@
             </article>
         </main>
     </div>
-
     }
     else
     {
@@ -97,7 +106,7 @@
     private PeriodicTimer? _playerRefreshTimer;
     private CancellationTokenSource _cts = new();
     // Replace these with your actual values from Google Developer Console
-   
+
     private string clientId = GlobalConstants.Debug ? "973406093603-dlm3o6jrkuf6b1m1lc7m8hir9qc4cul5.apps.googleusercontent.com" : "973406093603-t7b4fbs99ouvg6u4hud80s3b64eek5qt.apps.googleusercontent.com";
     private string redirectUri => Nav.BaseUri + "auth-callback"; // We will create this page next
     private string? ErrorMessage;
@@ -109,19 +118,28 @@
     private async Task LoginWithGoogle()
     {
         ErrorMessage = null; // Clear previous error, if any
-        var nonce = Guid.NewGuid().ToString();
+        // var nonce = Guid.NewGuid().ToString();
 
-        var url =
-            $"https://accounts.google.com/o/oauth2/v2/auth" +
-            $"?client_id={clientId}" +
-            $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-            $"&response_type=id_token" +
-            $"&scope=openid%20email%20profile" +
-            $"&nonce={nonce}" +
-            $"&prompt=select_account";
+        // var url =
+        //     $"https://accounts.google.com/o/oauth2/v2/auth" +
+        //     $"?client_id={clientId}" +
+        //     $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
+        //     $"&response_type=id_token" +
+        //     $"&scope=openid%20email%20profile" +
+        //     $"&nonce={nonce}" +
+        //     $"&prompt=select_account";
 
-        await JS.InvokeVoidAsync("window.registerGoogleAuthCallback", objRef);
-        await JS.InvokeVoidAsync("openGoogleLoginPopup", url);
+        // await JS.InvokeVoidAsync("window.registerGoogleAuthCallback", objRef);
+        // await JS.InvokeVoidAsync("openGoogleLoginPopup", url);
+
+
+        var redirectUri = Nav.BaseUri + "auth-callback";
+        var state = Guid.NewGuid().ToString("N");
+        await JS.InvokeVoidAsync("sessionStorage.setItem", "civic_state", state);
+        await JS.InvokeVoidAsync("civicAuth.begin", "205c334a-404e-4f88-a999-a80b0b8e0504", redirectUri, "openid email profile", state);
+
+
+
         await JS.InvokeVoidAsync("reloadLogo");
     }
 
@@ -135,7 +153,7 @@
             {
                 await Auth.SetPlayerInfoAsync(player);
                 PlayerState.SetPlayer(player); // <-- update global state here
-               // Nav.NavigateTo("/", true);
+                // Nav.NavigateTo("/", true);
                 _isLoggedIn = true;
                 StartPlayerRefreshTimer();
 
@@ -188,7 +206,7 @@
 
         if (!_isLoggedIn)
         {
-           
+
         }
         else
         {
@@ -241,13 +259,15 @@
         try
         {
             await Auth.RemoveAccessTokenAsync(); // Clear login token
-            
+
             _isLoggedIn = false;
             _phantomWalletAddress = null;
 
             // Disconnect wallet on logout
             await JS.InvokeVoidAsync("walletInterop.disconnectPhantom");
-
+            var postLogout = Nav.BaseUri; // e.g., https://localhost/ or your prod root
+            Console.WriteLine(postLogout);
+            await JS.InvokeVoidAsync("civicAuth.logout", postLogout);
             await InvokeAsync(StateHasChanged); // Refresh UI
             _cts.Cancel();                     // stop the loop
             _playerRefreshTimer?.Dispose();    // dispose timer

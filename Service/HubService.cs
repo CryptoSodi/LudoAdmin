@@ -30,8 +30,12 @@
         }
         public async Task<PlayerInfo> SendUserLoggedInEvent(string authToken)
         {
-            if(_hubConnection == null || _hubConnection.State != HubConnectionState.Connected)
-                throw new InvalidOperationException("Hub connection is not established.");
+        retry:
+            if (_hubConnection == null || _hubConnection.State != HubConnectionState.Connected)
+            {
+               await Task.Delay(100);
+                goto retry;
+            }   
             PlayerInfo player = await _hubConnection.InvokeAsync<PlayerInfo>("GoogleAuthentication", authToken, "", "").ConfigureAwait(false);
             return player;
         }
